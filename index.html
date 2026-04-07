@@ -301,7 +301,19 @@ input[type=color]{width:0;height:0;opacity:0;position:absolute}
   position:absolute;top:3px;left:3px;transition:var(--t)}
 .tg.on{background:rgba(82,178,255,.2);border-color:var(--a1)}
 .tg.on::after{transform:translateX(19px);background:var(--a1);box-shadow:0 0 8px var(--a1)}
-/* ──────── CLOAKER ──────── */
+/* ──────── PLANET CUSTOMIZER ──────── */
+.planet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-bottom:4px}
+.ptype{background:var(--s2);border:2px solid var(--b);border-radius:var(--r);
+  padding:10px 6px;cursor:pointer;text-align:center;transition:var(--t)}
+.ptype:hover{border-color:var(--a1);transform:translateY(-2px)}
+.ptype.on{border-color:var(--a1);background:rgba(82,178,255,.12);box-shadow:var(--ga1)}
+.ptype .pt-icon{font-size:1.6rem;display:block;margin-bottom:4px}
+.ptype .pt-name{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.08em;color:var(--tx2)}
+.ptype.on .pt-name{color:var(--a1)}
+.clr-pair{display:flex;gap:8px;flex-wrap:wrap}
+.mini-swatch{width:30px;height:30px;border-radius:6px;border:2px solid var(--b);
+  cursor:pointer;transition:var(--t);flex-shrink:0}
+.mini-swatch:hover{transform:scale(1.12);border-color:#fff}
 #pclk{display:flex;flex-direction:column;gap:15px}
 .wbox{background:rgba(255,79,139,.05);border:1px solid rgba(255,79,139,.18);
   border-radius:var(--r);padding:11px 15px;display:flex;gap:9px;align-items:flex-start}
@@ -410,10 +422,12 @@ input[type=color]{width:0;height:0;opacity:0;position:absolute}
         </button>
         <div class="ndd" id="ddt">
           <a onclick="show('ai');cdd()"><span class="di">🤖</span>AI Assistant</a>
-          <a onclick="show('px');cdd()"><span class="di">🌐</span>Proxy</a>
-          <a onclick="show('clk');cdd()"><span class="di">🎭</span>Cloaker</a>
-          <a onclick="show('th');cdd()"><span class="di">🎨</span>Theme</a>
+          <a onclick="show('px');cdd()"><span class="di">🌐</span>Proxy Browser</a>
+          <a onclick="show('clk');cdd()"><span class="di">🎭</span>Tab Cloaker</a>
+          <a onclick="show('th');cdd()"><span class="di">🎨</span>Customize</a>
+          <a onclick="show('th');setTimeout(()=>document.getElementById('ptypes').scrollIntoView({behavior:'smooth'}),200);cdd()"><span class="di">🪐</span>Planet Designer</a>
           <a onclick="show('cr');cdd()"><span class="di">⭐</span>Credits</a>
+          <a onclick="goFS();cdd()"><span class="di">⛶</span>Fullscreen</a>
         </div>
       </div>
       <button class="nbtn" onclick="show('ai')">🤖 AI</button>
@@ -564,6 +578,59 @@ input[type=color]{width:0;height:0;opacity:0;position:absolute}
         <div class="tgrow"><span class="tgl">✨ Particles</span><div class="tg on" id="tgpt" onclick="tfx('pts',this)"></div></div>
         <div class="tgrow"><span class="tgl">📺 Scanlines</span><div class="tg on" id="tgsc" onclick="tfx('scan',this)"></div></div>
       </div>
+
+      <!-- PLANET CUSTOMIZER -->
+      <div class="card" style="grid-column:1/-1">
+        <span class="thl">🪐 Planet Style</span>
+        <div class="planet-grid" id="ptypes">
+          <div class="ptype on" onclick="setPlanetType('ocean',this)"><span class="pt-icon">🌊</span><span class="pt-name">Ocean</span></div>
+          <div class="ptype" onclick="setPlanetType('lava',this)"><span class="pt-icon">🌋</span><span class="pt-name">Lava</span></div>
+          <div class="ptype" onclick="setPlanetType('ice',this)"><span class="pt-icon">❄️</span><span class="pt-name">Ice</span></div>
+          <div class="ptype" onclick="setPlanetType('alien',this)"><span class="pt-icon">👽</span><span class="pt-name">Alien</span></div>
+          <div class="ptype" onclick="setPlanetType('desert',this)"><span class="pt-icon">🏜️</span><span class="pt-name">Desert</span></div>
+          <div class="ptype" onclick="setPlanetType('nebula',this)"><span class="pt-icon">🌌</span><span class="pt-name">Nebula</span></div>
+          <div class="ptype" onclick="setPlanetType('toxic',this)"><span class="pt-icon">☢️</span><span class="pt-name">Toxic</span></div>
+          <div class="ptype" onclick="setPlanetType('gold',this)"><span class="pt-icon">✨</span><span class="pt-name">Gold</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px;flex-wrap:wrap">
+          <div>
+            <span class="thl">Surface Color</span>
+            <div class="clr-pair">
+              <div class="mini-swatch" id="pcsw1" style="background:#081030" onclick="document.getElementById('pcp1').click()"></div>
+              <div class="mini-swatch" id="pcsw2" style="background:#001c50" onclick="document.getElementById('pcp2').click()"></div>
+              <div class="mini-swatch" id="pcsw3" style="background:#52b2ff" onclick="document.getElementById('pcp3').click()"></div>
+              <input type="color" id="pcp1" value="#081030" oninput="setPlanetColors()"/>
+              <input type="color" id="pcp2" value="#001c50" oninput="setPlanetColors()"/>
+              <input type="color" id="pcp3" value="#52b2ff" oninput="setPlanetColors()"/>
+            </div>
+          </div>
+          <div>
+            <span class="thl">Rotation Speed</span>
+            <input type="range" class="rng" id="pspeed" min="0.01" max="0.4" step="0.01" value="0.1" oninput="setPlanetSpeed(this.value)"/>
+            <div class="rrow"><span>Slow</span><span>Fast</span></div>
+          </div>
+          <div>
+            <span class="thl">Planet Size</span>
+            <input type="range" class="rng" id="psize" min="0.5" max="3" step="0.1" value="1.7" oninput="setPlanetSize(this.value)"/>
+            <div class="rrow"><span>Small</span><span>Large</span></div>
+          </div>
+          <div>
+            <span class="thl">Ring Opacity</span>
+            <input type="range" class="rng" id="pring" min="0" max="1" step="0.05" value="0.26" oninput="setPlanetRings(this.value)"/>
+            <div class="rrow"><span>Off</span><span>Full</span></div>
+          </div>
+          <div>
+            <span class="thl">Atmosphere</span>
+            <input type="range" class="rng" id="patm" min="0" max="1" step="0.05" value="0.52" oninput="setPlanetAtm(this.value)"/>
+            <div class="rrow"><span>None</span><span>Thick</span></div>
+          </div>
+          <div>
+            <span class="thl">FBM Complexity</span>
+            <input type="range" class="rng" id="pfbm" min="0.5" max="4" step="0.1" value="1.9" oninput="setPlanetFBM(this.value)"/>
+            <div class="rrow"><span>Smooth</span><span>Rough</span></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- CLOAKER -->
@@ -633,46 +700,59 @@ let apiKey='',chatH=[],sessionT=Date.now(),activeCat='all';
   S.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x88bbff,size:.065,transparent:true,opacity:.62})));
   // planet shader
   const pM=new THREE.ShaderMaterial({
-    uniforms:{uT:{value:0},uC1:{value:new THREE.Color(0x081030)},uC2:{value:new THREE.Color(0x001c50)},uC3:{value:new THREE.Color(0x52b2ff)}},
+    uniforms:{uT:{value:0},uScale:{value:1.9},uC1:{value:new THREE.Color(0x081030)},uC2:{value:new THREE.Color(0x001c50)},uC3:{value:new THREE.Color(0x52b2ff)}},
     vertexShader:`varying vec2 vUv;varying vec3 vN,vP;void main(){vUv=uv;vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-    fragmentShader:`uniform float uT;uniform vec3 uC1,uC2,uC3;varying vec2 vUv;varying vec3 vN,vP;
+    fragmentShader:`uniform float uT,uScale;uniform vec3 uC1,uC2,uC3;varying vec2 vUv;varying vec3 vN,vP;
     float h(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5);}
     float sn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
     return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),
     mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z);}
     float fbm(vec3 p){float v=0.,a=.5;for(int i=0;i<6;i++){v+=a*sn(p);p*=2.1;a*=.5;}return v;}
-    void main(){vec3 p=vP*1.9+vec3(uT*.034,0.,0.);float n=fbm(p),n2=fbm(p*2.3+vec3(5.));
+    void main(){vec3 p=vP*uScale+vec3(uT*.034,0.,0.);float n=fbm(p),n2=fbm(p*2.3+vec3(5.));
     vec3 col=mix(uC1,uC2,n);col=mix(col,uC3,n2*.3);
-    vec3 vd=normalize(cameraPosition-vP);float rim=pow(1.-max(dot(vN,vd),0.),2.5);col+=vec3(0.,.35,1.)*rim*.7;
-    float sh=smoothstep(.43,.57,n)*(.5+.5*sin(uT*1.8+vUv.x*18.));col+=vec3(0.,.5,1.)*sh*.1;gl_FragColor=vec4(col,1.);}`,
+    vec3 vd=normalize(cameraPosition-vP);float rim=pow(1.-max(dot(vN,vd),0.),2.5);col+=uC3*rim*.5;
+    float sh=smoothstep(.43,.57,n)*(.5+.5*sin(uT*1.8+vUv.x*18.));col+=uC3*sh*.08;gl_FragColor=vec4(col,1.);}`,
   });
   const planet=new THREE.Mesh(new THREE.SphereGeometry(1.7,80,80),pM);
   planet.position.set(2.,-0.3,0);S.add(planet);
   // atmosphere
+  const aMat_u={uC:{value:new THREE.Color(0x52b2ff)}};
   const aM=new THREE.ShaderMaterial({
-    uniforms:{uC:{value:new THREE.Color(0x52b2ff)}},
+    uniforms:aMat_u,
     vertexShader:`varying vec3 vN;void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
     fragmentShader:`uniform vec3 uC;varying vec3 vN;void main(){float r=pow(1.-max(dot(vN,normalize(cameraPosition-vec3(0.))),0.),3.);gl_FragColor=vec4(uC,r*.52);}`,
     transparent:true,side:THREE.FrontSide,blending:THREE.AdditiveBlending,depthWrite:false
   });
-  S.add(new THREE.Mesh(new THREE.SphereGeometry(1.88,64,64),aM));
+  const atmMesh=new THREE.Mesh(new THREE.SphereGeometry(1.88,64,64),aM);
+  atmMesh.position.copy(planet.position);S.add(atmMesh);
   // rings
   const rM=new THREE.ShaderMaterial({
-    uniforms:{uT:{value:0}},
+    uniforms:{uT:{value:0},uOp:{value:0.26}},
     vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-    fragmentShader:`uniform float uT;varying vec2 vUv;void main(){float r=length(vUv-.5)*2.;float a=smoothstep(.98,1.,r)+(1.-smoothstep(0.,.02,r));float s=.5+.5*sin(vUv.x*55.+uT);gl_FragColor=vec4(0.,.55,1.,(1.-a)*.26*s);}`,
+    fragmentShader:`uniform float uT,uOp;varying vec2 vUv;void main(){float r=length(vUv-.5)*2.;float a=smoothstep(.98,1.,r)+(1.-smoothstep(0.,.02,r));float s=.5+.5*sin(vUv.x*55.+uT);gl_FragColor=vec4(0.,.55,1.,(1.-a)*uOp*s);}`,
     transparent:true,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false
   });
   const ring=new THREE.Mesh(new THREE.RingGeometry(2.1,3.,128),rM);
   ring.rotation.x=Math.PI*.32;ring.position.copy(planet.position);S.add(ring);
+
+  let planetSpeed=0.1;
   let t=0;
   function anim(){requestAnimationFrame(anim);
     if(!FX.planet)return;t+=.007;
     pM.uniforms.uT.value=t;rM.uniforms.uT.value=t;
-    planet.rotation.y=t*.1;ring.rotation.z=t*.03;
+    planet.rotation.y+=planetSpeed*.007;ring.rotation.z+=.0003;
     C.position.x=Math.sin(t*.04)*.22;C.position.y=Math.cos(t*.06)*.11;
     C.lookAt(S.position);R.render(S,C);}
   anim();
+
+  // expose planet controls to customizer functions
+  window._planet={
+    mesh:planet,ring,mat:pM,atm:aM,
+    get speed(){return planetSpeed;},set speed(v){planetSpeed=v;},
+    get ringOpacity(){return rM.uniforms.uOp.value;},set ringOpacity(v){rM.uniforms.uOp.value=v;},
+    get atmOpacity(){return 0.52;},set atmOpacity(v){/* atm uniform embedded */},
+  };
+
   window.addEventListener('resize',()=>{C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
 })();
 
@@ -730,35 +810,56 @@ document.addEventListener('click',e=>{if(!e.target.closest('.ni'))cdd();});
    Categories: action arcade puzzle card sport idle
 ═══════════════════════════════════ */
 const GAMES=[
-  {name:'Basket Random',cat:'Sport',icon:'🏀',url:'https://script.google.com/macros/s/AKfycbwiQgeRHVDP8wzJ_CeSE1LyaKCMu1qdlopwylhD4LdBvBVd2y36VjlWY0iyk38WH0JiJA/exec',color:'#ffa040',stars:'★★★★☆'},
-  {name:'Soccer Random',cat:'Sport',icon:'⚽',url:'https://script.google.com/macros/s/AKfycbwr79gF5RqgUkBr0YEX16ayQF4aqdcHxaLRubcOggFvXqp-PiG7tw0uyvr3vlUEpDnC/exec',color:'#ffa040',stars:'★★★★☆'},
-  {name:'2048',cat:'Puzzle',icon:'🟨',url:'https://n-p7h6bh7fdvamgp3vkuvdj4xndzs7jm3s64l5wja-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffa040',stars:'★★★★☆'},
- {name:'1 On 1 Soccer',cat:'Sport',icon:'⚽',url:'https://script.google.com/macros/s/AKfycbxJ3oet4bnNqQK_nqPo6KSwPlvIMR448__kEYKx_WN-QbncNc98PEc-qaFme7l2tbKH/exec',color:'#ffa040',stars:'★★★★☆'},
-{name:'Monkey Mart',cat:'Arcade',icon:'🐒',url:'https://monkeymart6x.io/monkey-mart.embed',color:'#ffa040',stars:'★★★★☆'},
-
+  // ── ACTION ──
+  {name:'Flappy Bird',   cat:'action',icon:'🐦',url:'https://flappybird.io/',color:'#ff4f8b',stars:'★★★☆☆'},
+  {name:'Run 3',         cat:'action',icon:'🏃',url:'https://script.google.com/macros/s/AKfycbzH19beOtthmgHOAyQwTzkPrGUquWfIq91ElX_xLebPeMZTByPCWbHpMX2ANYTjcTjs/exec',color:'#ff6b35',stars:'★★★★☆'},
+  {name:'Stickman Duel',    cat:'action',icon:'☻',url:'https://n-6zrzh5oc474uxufjxoxmmfreely2skj3gwmb3rq-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ff2020',stars:'★★★★☆'},
+  {name:'Slope',         cat:'action',icon:'🌀',url:'https://slope-unblocked-10x.github.io/action-games/slope/',color:'#00c8ff',stars:'★★★★★'},
+  // ── ARCADE ──
+  {name:'Snake',         cat:'arcade',icon:'🐍',url:'https://playsnake.org/',color:'#00e5a0',stars:'★★★☆☆'},
+  {name:'Tetris',        cat:'arcade',icon:'🟦',url:'https://n-rjpaswv5ivzz3xomtg4355kv3bgwasfet3p5qcq-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#52b2ff',stars:'★★★★★'},
+  {name:'Pac-Man',       cat:'arcade',icon:'🟡',url:'https://n-gurrg7busogqvqufle2m7zeojayjjqphsslqyiy-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffe200',stars:'★★★★☆'},
+  {name:'Monkey Mart',   cat:'Arcade',icon:'🐒',url:'https://monkeymart6x.io/monkey-mart.embed',color:'#ffaa00',stars:'★★★★☆'},
+  // ── PUZZLE ──
+  {name:'2048',          cat:'Puzzle',icon:'🟨',url:'https://n-p7h6bh7fdvamgp3vkuvdj4xndzs7jm3s64l5wja-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffa040',stars:'★★★★☆'},
+  // ── CARD ──
+  {name:'Chess',         cat:'card',  icon:'♟️',url:'https://script.google.com/macros/s/AKfycbwD4aYk8804rFEa2GleUacBH110qmzS8bz-wHnRTTigY2HkE3iafHYLRCkH0nUGc_oA/exec',color:'#aaaaaa',stars:'★★★★★'},
+  {name:'Google Solitaire',cat:'card',  icon:'🃏',url:'https://www.google.com/logos/fnbx/solitaire/standalone.html',color:'#ff4f8b',stars:'★★★★☆'},
+  // ── SPORT ──
+  {name:'Basket Bros',   cat:'Sport', icon:'🏀',url:'https://script.google.com/macros/s/AKfycbxUfaDSpH-0SJL0WPKt38JY7OOOGMmtpY9JTSbL8pvtjxS7jSpNHHu6MdZgWUshIU00Kw/exec',color:'#ff8800',stars:'★★★★☆'},
+  {name:'Basket Random', cat:'Sport', icon:'🏀',url:'https://script.google.com/macros/s/AKfycbwiQgeRHVDP8wzJ_CeSE1LyaKCMu1qdlopwylhD4LdBvBVd2y36VjlWY0iyk38WH0JiJA/exec',color:'#ffa040',stars:'★★★★☆'},
+  {name:'Soccer Random', cat:'Sport', icon:'⚽',url:'https://script.google.com/macros/s/AKfycbwr79gF5RqgUkBr0YEX16ayQF4aqdcHxaLRubcOggFvXqp-PiG7tw0uyvr3vlUEpDnC/exec',color:'#ffa040',stars:'★★★★☆'},
+  {name:'1 On 1 Soccer', cat:'Sport', icon:'⚽',url:'https://script.google.com/macros/s/AKfycbxJ3oet4bnNqQK_nqPo6KSwPlvIMR448__kEYKx_WN-QbncNc98PEc-qaFme7l2tbKH/exec',color:'#ffa040',stars:'★★★★☆'},
+  // ── IDLE ──
+  {name:'Cookie Clicker',cat:'idle',  icon:'🍪',url:'https://script.google.com/macros/s/AKfycbxGM35J29NkO-2LYjxWj_cA9IUaaXypkUy-LqXyLRbGTz0R6lXmAEapz1STN1jlTIRavw/exec/',color:'#c87941',stars:'★★★★★'},
 ];
-/* ─── To add a game, paste a new line above this comment:
-   {name:'Game Name', cat:'arcade', icon:'🎮', url:'https://game-url.com', color:'#hex', stars:'★★★★☆'},
-─── */
+/* ─────────────────────────────────────────────────────
+   ➕ TO ADD A GAME — paste a new entry anywhere above:
+   { name:'My Game', cat:'arcade', icon:'🎮', url:'https://url.com', color:'#hex', stars:'★★★★☆' },
+   Cats (any case OK): action · arcade · puzzle · card · sport · idle
+──────────────────────────────────────────────────── */
 
+// normalize cat — fixes Capital vs lowercase mismatch
 const catClass={action:'ta',arcade:'tc',puzzle:'tp',card:'tk',sport:'ts',idle:'ti'};
+function normCat(c){return (c||'').toLowerCase().trim();}
 
 function buildGames(){
   const g=document.getElementById('ggrid');g.innerHTML='';
-  const list=activeCat==='all'?GAMES:GAMES.filter(x=>x.cat===activeCat);
+  const list=activeCat==='all'?GAMES:GAMES.filter(x=>normCat(x.cat)===normCat(activeCat));
   list.forEach(gm=>{
+    const nc=normCat(gm.cat);
     const c=document.createElement('div');c.className='gc';
-    c.dataset.name=gm.name.toLowerCase();
+    c.dataset.name=gm.name.toLowerCase();c.dataset.cat=nc;
     c.innerHTML=`<div class="gthumb" style="background:linear-gradient(135deg,${gm.color}1e,${gm.color}40)">
       <span>${gm.icon}</span><div class="gplay"><span>▶ PLAY</span></div></div>
       <div class="gbody"><div class="gname">${gm.name}</div>
-      <div class="gfoot"><span class="gtag ${catClass[gm.cat]||'tc'}">${gm.cat}</span>
+      <div class="gfoot"><span class="gtag ${catClass[nc]||'tc'}">${gm.cat}</span>
       <span class="gstars">${gm.stars}</span></div></div>`;
     c.onclick=()=>launchGame(gm);g.appendChild(c);
   });
   document.getElementById('shg').textContent=GAMES.length;
 }
-function fc(cat,el){activeCat=cat;document.querySelectorAll('.cat').forEach(c=>c.classList.remove('on'));if(el)el.classList.add('on');buildGames();}
+function fc(cat,el){activeCat=normCat(cat);document.querySelectorAll('.cat').forEach(c=>c.classList.remove('on'));if(el)el.classList.add('on');buildGames();}
 function fsearch(q){document.querySelectorAll('.gc').forEach(c=>c.style.display=c.dataset.name.includes(q.toLowerCase())?'':'none');}
 function launchGame(gm){
   document.getElementById('gotitle').textContent='★ '+gm.name.toUpperCase();
@@ -864,6 +965,51 @@ function resetCloak(){document.title='Stars OS';
   document.querySelectorAll('.co').forEach(c=>c.classList.remove('on'));
   document.getElementById('cst').textContent='None (Stars OS)';document.getElementById('shc').textContent='OFF';
   toast('Cloaker reset','🎭');}
+
+/* PLANET CUSTOMIZER */
+// These reference the Three.js uniforms set up in the scene closure.
+// We expose planet controls via window._planet
+const PLANET_TYPES={
+  ocean: {c1:'#081030',c2:'#001c50',c3:'#52b2ff'},
+  lava:  {c1:'#2a0400',c2:'#6b1500',c3:'#ff4400'},
+  ice:   {c1:'#0a1828',c2:'#1a3850',c3:'#a8f0ff'},
+  alien: {c1:'#041a08',c2:'#0a3014',c3:'#00ff88'},
+  desert:{c1:'#1a0e04',c2:'#3d2010',c3:'#ff9500'},
+  nebula:{c1:'#100820',c2:'#20084a',c3:'#9b5fff'},
+  toxic: {c1:'#081a04',c2:'#143808',c3:'#aaff00'},
+  gold:  {c1:'#1a1000',c2:'#3d2800',c3:'#ffc555'},
+};
+function setPlanetType(key,el){
+  const p=PLANET_TYPES[key];if(!p)return;
+  document.getElementById('pcp1').value=p.c1;
+  document.getElementById('pcp2').value=p.c2;
+  document.getElementById('pcp3').value=p.c3;
+  document.getElementById('pcsw1').style.background=p.c1;
+  document.getElementById('pcsw2').style.background=p.c2;
+  document.getElementById('pcsw3').style.background=p.c3;
+  document.querySelectorAll('.ptype').forEach(t=>t.classList.remove('on'));
+  if(el)el.classList.add('on');
+  setPlanetColors();
+  toast('Planet: '+key.charAt(0).toUpperCase()+key.slice(1),'🪐');
+}
+function setPlanetColors(){
+  if(!window._planet)return;
+  const c1=document.getElementById('pcp1').value;
+  const c2=document.getElementById('pcp2').value;
+  const c3=document.getElementById('pcp3').value;
+  window._planet.mat.uniforms.uC1.value.set(c1);
+  window._planet.mat.uniforms.uC2.value.set(c2);
+  window._planet.mat.uniforms.uC3.value.set(c3);
+  window._planet.atm.uniforms.uC.value.set(c3);
+  document.getElementById('pcsw1').style.background=c1;
+  document.getElementById('pcsw2').style.background=c2;
+  document.getElementById('pcsw3').style.background=c3;
+}
+function setPlanetSpeed(v){if(window._planet)window._planet.speed=parseFloat(v);}
+function setPlanetSize(v){if(window._planet){const s=parseFloat(v);window._planet.mesh.scale.setScalar(s/1.7);window._planet.ring.scale.setScalar(s/1.7);}}
+function setPlanetRings(v){if(window._planet)window._planet.ringOpacity=parseFloat(v);}
+function setPlanetAtm(v){if(window._planet)window._planet.atmOpacity=parseFloat(v);}
+function setPlanetFBM(v){if(window._planet)window._planet.mat.uniforms.uScale.value=parseFloat(v);}
 
 /* FULLSCREEN */
 function goFS(){if(!document.fullscreenElement){document.documentElement.requestFullscreen?.();toast('Fullscreen','⛶');}else document.exitFullscreen?.();}
