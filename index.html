@@ -1,2332 +1,878 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stars OS</title>
-  <!-- ══════════════════════════════════════════════════
-       STARS OS — Premium Web Operating System
-       ══════════════════════════════════════════════════
-       CDN Dependencies:
-       • Three.js  — 3D planet background
-       • GSAP       — premium animations
-       • Google Fonts — Orbitron + Rajdhani typography
-  ═══════════════════════════════════════════════════ -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
-
-  <style>
-    /* ══════════════════════════════════════
-       CSS VARIABLES — Theming Engine
-    ══════════════════════════════════════ */
-    :root {
-      --clr-bg:        #020814;
-      --clr-surface:   rgba(6, 18, 40, 0.72);
-      --clr-surface2:  rgba(10, 28, 60, 0.55);
-      --clr-border:    rgba(0, 180, 255, 0.25);
-      --clr-accent:    #00b4ff;
-      --clr-accent2:   #7b2fff;
-      --clr-accent3:   #ff2d78;
-      --clr-text:      #c8e6ff;
-      --clr-text-dim:  rgba(150, 200, 255, 0.55);
-      --glow-sm:       0 0 8px var(--clr-accent);
-      --glow-md:       0 0 18px var(--clr-accent), 0 0 40px rgba(0,180,255,0.3);
-      --glow-lg:       0 0 30px var(--clr-accent), 0 0 80px rgba(0,180,255,0.4), 0 0 160px rgba(0,180,255,0.15);
-      --glow-intensity: 1;
-      --blur-glass:    18px;
-      --radius:        14px;
-      --radius-lg:     22px;
-      --transition:    0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* ══════════════════════════════════════
-       RESET & BASE
-    ══════════════════════════════════════ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
-      font-family: 'Rajdhani', sans-serif;
-      background: var(--clr-bg);
-      color: var(--clr-text);
-      cursor: default;
-      user-select: none;
-    }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--clr-accent); border-radius: 4px; }
-
-    /* ══════════════════════════════════════
-       THREE.JS CANVAS BACKGROUND
-    ══════════════════════════════════════ */
-    #bg-canvas {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    /* ══════════════════════════════════════
-       RAIN CANVAS
-    ══════════════════════════════════════ */
-    #rain-canvas {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      opacity: 0.18;
-    }
-
-    /* ══════════════════════════════════════
-       LOADING SCREEN
-    ══════════════════════════════════════ */
-    #loader {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 24px;
-    }
-    #loader .loader-logo {
-      font-family: 'Orbitron', sans-serif;
-      font-size: clamp(2.5rem, 8vw, 6rem);
-      font-weight: 900;
-      letter-spacing: 0.25em;
-      background: linear-gradient(135deg, #00b4ff 0%, #7b2fff 50%, #ff2d78 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 30px #00b4ff) drop-shadow(0 0 60px #7b2fff);
-      opacity: 0;
-      transform: scale(0.7) translateY(30px);
-      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    #loader .loader-logo.show {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-    #loader .loader-tagline {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.95rem;
-      color: var(--clr-accent);
-      letter-spacing: 0.35em;
-      opacity: 0;
-      text-transform: uppercase;
-      transition: opacity 0.6s ease 0.5s;
-    }
-    #loader .loader-tagline.show { opacity: 0.7; }
-    .loader-bar-wrap {
-      width: min(320px, 70vw);
-      height: 2px;
-      background: rgba(0,180,255,0.15);
-      border-radius: 99px;
-      overflow: hidden;
-      margin-top: 16px;
-    }
-    .loader-bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #00b4ff, #7b2fff, #ff2d78);
-      border-radius: 99px;
-      box-shadow: 0 0 12px #00b4ff;
-      transition: width 2.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .loader-steps {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.72rem;
-      color: rgba(0,180,255,0.5);
-      letter-spacing: 0.1em;
-      height: 20px;
-      overflow: hidden;
-    }
-    .loader-steps span {
-      display: block;
-      transition: opacity 0.3s;
-    }
-
-    /* ══════════════════════════════════════
-       DESKTOP / MAIN SHELL
-    ══════════════════════════════════════ */
-    #desktop {
-      position: fixed;
-      inset: 0;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.8s ease;
-    }
-    #desktop.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    /* ══════════════════════════════════════
-       TASKBAR
-    ══════════════════════════════════════ */
-    #taskbar {
-      height: 52px;
-      background: rgba(2, 10, 28, 0.85);
-      backdrop-filter: blur(24px) saturate(1.4);
-      border-bottom: 1px solid var(--clr-border);
-      display: flex;
-      align-items: center;
-      padding: 0 18px;
-      gap: 12px;
-      z-index: 100;
-      flex-shrink: 0;
-      box-shadow: 0 2px 40px rgba(0,0,0,0.6);
-    }
-    .taskbar-logo {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.05rem;
-      font-weight: 900;
-      letter-spacing: 0.2em;
-      background: linear-gradient(135deg, #00b4ff, #7b2fff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 8px #00b4ff);
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .taskbar-divider {
-      width: 1px;
-      height: 24px;
-      background: var(--clr-border);
-      flex-shrink: 0;
-    }
-    .taskbar-nav {
-      display: flex;
-      gap: 4px;
-      flex: 1;
-    }
-
-    /* ── Dropdown Nav ── */
-    .nav-item {
-      position: relative;
-    }
-    .nav-btn {
-      background: none;
-      border: none;
-      color: var(--clr-text-dim);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 6px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .nav-btn:hover, .nav-btn.active {
-      color: var(--clr-accent);
-      background: rgba(0,180,255,0.1);
-      text-shadow: var(--glow-sm);
-    }
-    .nav-btn svg { width: 12px; height: 12px; transition: transform 0.25s; }
-    .nav-btn.open svg { transform: rotate(180deg); }
-    .nav-dropdown {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      min-width: 180px;
-      background: rgba(4, 14, 36, 0.96);
-      backdrop-filter: blur(24px);
-      border: 1px solid var(--clr-border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-8px);
-      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 200;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 30px rgba(0,180,255,0.08);
-    }
-    .nav-dropdown.open {
-      opacity: 1;
-      pointer-events: all;
-      transform: translateY(0);
-    }
-    .nav-dropdown a {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 16px;
-      color: var(--clr-text-dim);
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-decoration: none;
-      transition: var(--transition);
-      cursor: pointer;
-    }
-    .nav-dropdown a:hover {
-      color: var(--clr-accent);
-      background: rgba(0,180,255,0.1);
-      padding-left: 22px;
-    }
-    .nav-dropdown a .dd-icon {
-      font-size: 1rem;
-      width: 20px;
-      text-align: center;
-    }
-
-    /* ── Taskbar Right ── */
-    .taskbar-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-left: auto;
-    }
-    #clock {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.9rem;
-      color: var(--clr-accent);
-      letter-spacing: 0.1em;
-      text-shadow: var(--glow-sm);
-      white-space: nowrap;
-    }
-    .taskbar-icon-btn {
-      width: 32px; height: 32px;
-      background: rgba(0,180,255,0.08);
-      border: 1px solid var(--clr-border);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      font-size: 0.95rem;
-      transition: var(--transition);
-      color: var(--clr-text-dim);
-    }
-    .taskbar-icon-btn:hover {
-      background: rgba(0,180,255,0.2);
-      color: var(--clr-accent);
-      box-shadow: var(--glow-sm);
-      border-color: var(--clr-accent);
-    }
-
-    /* ══════════════════════════════════════
-       MAIN CONTENT AREA
-    ══════════════════════════════════════ */
-    #main-area {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* ══════════════════════════════════════
-       PANELS (pages)
-    ══════════════════════════════════════ */
-    .panel {
-      position: absolute;
-      inset: 0;
-      padding: 24px;
-      overflow-y: auto;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(10px);
-      transition: opacity 0.35s ease, transform 0.35s ease;
-    }
-    .panel.active {
-      opacity: 1;
-      pointer-events: all;
-      transform: translateY(0);
-    }
-
-    /* ══════════════════════════════════════
-       GLASS CARD COMPONENT
-    ══════════════════════════════════════ */
-    .glass-card {
-      background: var(--clr-surface);
-      backdrop-filter: blur(var(--blur-glass)) saturate(1.3);
-      border: 1px solid var(--clr-border);
-      border-radius: var(--radius-lg);
-      padding: 22px 24px;
-      box-shadow:
-        0 8px 32px rgba(0,0,0,0.5),
-        inset 0 1px 0 rgba(255,255,255,0.05);
-      transition: var(--transition);
-    }
-    .glass-card:hover {
-      border-color: rgba(0,180,255,0.4);
-      box-shadow: 0 8px 48px rgba(0,0,0,0.6), 0 0 30px rgba(0,180,255,calc(0.08 * var(--glow-intensity)));
-    }
-
-    /* ══════════════════════════════════════
-       SECTION HEADERS
-    ══════════════════════════════════════ */
-    .section-header {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.3rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      color: var(--clr-accent);
-      text-shadow: calc(var(--glow-intensity) * 1) 0 0 8px var(--clr-accent);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .section-header::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--clr-accent), transparent);
-      opacity: 0.4;
-    }
-    .section-tag {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.65rem;
-      color: var(--clr-accent);
-      background: rgba(0,180,255,0.1);
-      border: 1px solid rgba(0,180,255,0.3);
-      border-radius: 4px;
-      padding: 2px 8px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-    }
-
-    /* ══════════════════════════════════════
-       NEON BUTTON
-    ══════════════════════════════════════ */
-    .btn-neon {
-      background: linear-gradient(135deg, rgba(0,180,255,0.15), rgba(123,47,255,0.1));
-      border: 1px solid var(--clr-accent);
-      color: var(--clr-accent);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      padding: 9px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      position: relative;
-      overflow: hidden;
-    }
-    .btn-neon::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, var(--clr-accent), var(--clr-accent2));
-      opacity: 0;
-      transition: opacity 0.25s;
-    }
-    .btn-neon:hover {
-      box-shadow: calc(var(--glow-intensity) * 1) 0 0 var(--glow-md);
-      transform: translateY(-1px);
-      color: #fff;
-    }
-    .btn-neon:hover::before { opacity: 0.18; }
-    .btn-neon:active { transform: translateY(0); }
-    .btn-neon span { position: relative; z-index: 1; }
-    .btn-neon-danger {
-      border-color: var(--clr-accent3);
-      color: var(--clr-accent3);
-    }
-    .btn-neon-danger:hover { box-shadow: 0 0 18px var(--clr-accent3), 0 0 40px rgba(255,45,120,0.3); }
-    .btn-neon-purple {
-      border-color: var(--clr-accent2);
-      color: var(--clr-accent2);
-    }
-    .btn-neon-purple:hover { box-shadow: 0 0 18px var(--clr-accent2); }
-
-    /* ══════════════════════════════════════
-       DASHBOARD / HOME PANEL
-    ══════════════════════════════════════ */
-    #panel-home {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
-      align-content: start;
-    }
-    .home-widget {
-      padding: 20px 22px 22px;
-    }
-    .home-widget h3 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      color: var(--clr-text-dim);
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    .widget-value {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 2.2rem;
-      font-weight: 900;
-      color: var(--clr-accent);
-      text-shadow: var(--glow-md);
-      line-height: 1;
-    }
-    .widget-sub {
-      font-size: 0.82rem;
-      color: var(--clr-text-dim);
-      margin-top: 4px;
-    }
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 7px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-      font-size: 0.85rem;
-    }
-    .stat-row:last-child { border-bottom: none; }
-    .stat-row .label { color: var(--clr-text-dim); }
-    .stat-row .val { color: var(--clr-accent); font-family: 'Share Tech Mono', monospace; font-size: 0.82rem; }
-    .welcome-card {
-      grid-column: 1 / -1;
-      background: linear-gradient(135deg, rgba(0,180,255,0.08) 0%, rgba(123,47,255,0.12) 100%);
-    }
-    .welcome-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: clamp(1.2rem, 3vw, 2rem);
-      font-weight: 900;
-      letter-spacing: 0.1em;
-      background: linear-gradient(135deg, #00b4ff, #7b2fff, #ff2d78);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 20px rgba(0,180,255,0.4));
-      margin-bottom: 8px;
-    }
-    .welcome-sub {
-      color: var(--clr-text-dim);
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-    .quick-launch {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 18px;
-    }
-
-    /* ══════════════════════════════════════
-       GAMES PANEL
-    ══════════════════════════════════════ */
-    #panel-games {
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-    }
-    .game-search-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .search-input {
-      flex: 1;
-      background: rgba(0,180,255,0.07);
-      border: 1px solid var(--clr-border);
-      border-radius: 10px;
-      padding: 10px 16px;
-      color: var(--clr-text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.92rem;
-      outline: none;
-      transition: var(--transition);
-    }
-    .search-input:focus {
-      border-color: var(--clr-accent);
-      box-shadow: var(--glow-sm);
-      background: rgba(0,180,255,0.12);
-    }
-    .search-input::placeholder { color: var(--clr-text-dim); }
-    .category-tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .cat-tab {
-      background: rgba(0,180,255,0.07);
-      border: 1px solid rgba(0,180,255,0.2);
-      border-radius: 20px;
-      padding: 5px 16px;
-      color: var(--clr-text-dim);
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    .cat-tab:hover, .cat-tab.active {
-      background: rgba(0,180,255,0.2);
-      border-color: var(--clr-accent);
-      color: var(--clr-accent);
-      box-shadow: var(--glow-sm);
-    }
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 14px;
-    }
-    .game-card {
-      background: var(--clr-surface2);
-      border: 1px solid var(--clr-border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      cursor: pointer;
-      transition: var(--transition);
-      position: relative;
-      group: true;
-    }
-    .game-card:hover {
-      border-color: var(--clr-accent);
-      transform: translateY(-4px) scale(1.02);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 20px rgba(0,180,255,calc(0.2 * var(--glow-intensity)));
-    }
-    .game-thumb {
-      width: 100%;
-      aspect-ratio: 16/9;
-      background: linear-gradient(135deg, #0a1628, #101e40);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .game-thumb::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(0,180,255,0.12), rgba(123,47,255,0.12));
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .game-card:hover .game-thumb::before { opacity: 1; }
-    .game-thumb-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,180,255,0.15);
-      opacity: 0;
-      transition: opacity 0.25s;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.2em;
-      color: #fff;
-    }
-    .game-card:hover .game-thumb-overlay { opacity: 1; }
-    .game-info {
-      padding: 10px 12px 12px;
-    }
-    .game-name {
-      font-weight: 700;
-      font-size: 0.9rem;
-      letter-spacing: 0.04em;
-      color: var(--clr-text);
-      margin-bottom: 4px;
-    }
-    .game-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .game-category {
-      font-size: 0.7rem;
-      background: rgba(0,180,255,0.1);
-      border: 1px solid rgba(0,180,255,0.2);
-      color: var(--clr-accent);
-      border-radius: 4px;
-      padding: 2px 7px;
-      font-family: 'Share Tech Mono', monospace;
-      letter-spacing: 0.08em;
-    }
-    .game-cat-action  { background: rgba(255,45,120,0.1); border-color: rgba(255,45,120,0.3); color: var(--clr-accent3); }
-    .game-cat-puzzle  { background: rgba(123,47,255,0.1); border-color: rgba(123,47,255,0.3); color: var(--clr-accent2); }
-    .game-cat-card    { background: rgba(255,160,0,0.1);  border-color: rgba(255,160,0,0.3);  color: #ffa040; }
-    .game-cat-arcade  { background: rgba(0,255,120,0.1);  border-color: rgba(0,255,120,0.3);  color: #00ff88; }
-
-    /* ══════════════════════════════════════
-       FULLSCREEN GAME IFRAME OVERLAY
-    ══════════════════════════════════════ */
-    #game-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 500;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.35s ease;
-    }
-    #game-overlay.open {
-      opacity: 1;
-      pointer-events: all;
-    }
-    .game-overlay-bar {
-      height: 44px;
-      background: rgba(2,8,20,0.95);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--clr-border);
-      display: flex;
-      align-items: center;
-      padding: 0 14px;
-      gap: 12px;
-      flex-shrink: 0;
-    }
-    .game-overlay-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.85rem;
-      letter-spacing: 0.15em;
-      color: var(--clr-accent);
-      text-shadow: var(--glow-sm);
-      flex: 1;
-    }
-    #game-iframe {
-      flex: 1;
-      border: none;
-      width: 100%;
-    }
-
-    /* ══════════════════════════════════════
-       AI ASSISTANT PANEL
-    ══════════════════════════════════════ */
-    #panel-ai {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      height: 100%;
-    }
-    .ai-chat-window {
-      flex: 1;
-      min-height: 300px;
-      max-height: calc(100vh - 280px);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      padding: 20px;
-    }
-    .ai-msg {
-      display: flex;
-      gap: 10px;
-      max-width: 78%;
-      animation: msgIn 0.3s ease;
-    }
-    @keyframes msgIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .ai-msg.user { margin-left: auto; flex-direction: row-reverse; }
-    .ai-avatar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.85rem;
-    }
-    .ai-avatar.bot {
-      background: linear-gradient(135deg, rgba(0,180,255,0.3), rgba(123,47,255,0.3));
-      border: 1px solid rgba(0,180,255,0.4);
-      color: var(--clr-accent);
-    }
-    .ai-avatar.user-av {
-      background: linear-gradient(135deg, rgba(123,47,255,0.3), rgba(255,45,120,0.3));
-      border: 1px solid rgba(123,47,255,0.4);
-      color: var(--clr-accent2);
-    }
-    .ai-bubble {
-      background: var(--clr-surface);
-      border: 1px solid var(--clr-border);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      backdrop-filter: blur(10px);
-    }
-    .ai-msg.user .ai-bubble {
-      background: rgba(123,47,255,0.15);
-      border-color: rgba(123,47,255,0.35);
-      color: var(--clr-text);
-    }
-    .ai-input-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-    }
-    .ai-textarea {
-      flex: 1;
-      background: rgba(0,180,255,0.07);
-      border: 1px solid var(--clr-border);
-      border-radius: 12px;
-      padding: 12px 16px;
-      color: var(--clr-text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.93rem;
-      resize: none;
-      outline: none;
-      transition: var(--transition);
-      min-height: 46px;
-      max-height: 120px;
-    }
-    .ai-textarea:focus {
-      border-color: var(--clr-accent);
-      box-shadow: var(--glow-sm);
-      background: rgba(0,180,255,0.12);
-    }
-    .ai-notice {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
-      color: rgba(0,180,255,0.35);
-      text-align: center;
-      letter-spacing: 0.05em;
-      padding: 4px;
-    }
-
-    /* API key config */
-    .ai-config {
-      background: rgba(255,160,0,0.06);
-      border: 1px solid rgba(255,160,0,0.2);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .ai-config-icon { font-size: 1.2rem; }
-    .ai-config p {
-      font-size: 0.85rem;
-      color: rgba(255,200,100,0.8);
-      flex: 1;
-      line-height: 1.5;
-    }
-    .ai-config code {
-      font-family: 'Share Tech Mono', monospace;
-      background: rgba(255,160,0,0.1);
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      color: #ffa040;
-    }
-    .api-key-input {
-      width: 100%;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,160,0,0.3);
-      border-radius: 8px;
-      padding: 8px 14px;
-      color: #ffa040;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.8rem;
-      outline: none;
-      margin-top: 10px;
-    }
-    .api-key-input:focus { border-color: #ffa040; box-shadow: 0 0 10px rgba(255,160,0,0.2); }
-
-    /* ══════════════════════════════════════
-       PROXY PANEL
-    ══════════════════════════════════════ */
-    #panel-proxy {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .proxy-url-bar {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .proxy-input {
-      flex: 1;
-      background: rgba(0,180,255,0.07);
-      border: 1px solid var(--clr-border);
-      border-radius: 10px;
-      padding: 11px 18px;
-      color: var(--clr-text);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.88rem;
-      outline: none;
-      transition: var(--transition);
-    }
-    .proxy-input:focus { border-color: var(--clr-accent); box-shadow: var(--glow-sm); }
-    .proxy-frame-wrap {
-      flex: 1;
-      border-radius: var(--radius);
-      overflow: hidden;
-      border: 1px solid var(--clr-border);
-      min-height: 300px;
-      position: relative;
-    }
-    .proxy-placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      color: var(--clr-text-dim);
-    }
-    .proxy-placeholder .ph-icon { font-size: 3rem; opacity: 0.4; }
-    .proxy-placeholder h3 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.2em;
-      color: var(--clr-text-dim);
-    }
-    .proxy-placeholder p {
-      font-size: 0.82rem;
-      text-align: center;
-      max-width: 380px;
-      line-height: 1.6;
-      opacity: 0.6;
-    }
-    .proxy-options {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 10px;
-    }
-    .proxy-opt-card {
-      background: var(--clr-surface2);
-      border: 1px solid var(--clr-border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      cursor: pointer;
-      transition: var(--transition);
-      text-align: center;
-    }
-    .proxy-opt-card:hover {
-      border-color: var(--clr-accent);
-      background: rgba(0,180,255,0.08);
-      transform: translateY(-2px);
-    }
-    .proxy-opt-icon { font-size: 1.8rem; margin-bottom: 6px; }
-    .proxy-opt-name {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      color: var(--clr-text-dim);
-    }
-    .proxy-opt-status {
-      font-size: 0.7rem;
-      font-family: 'Share Tech Mono', monospace;
-      margin-top: 4px;
-    }
-    .status-soon { color: #ffa040; }
-    .status-beta { color: #00ff88; }
-
-    /* ══════════════════════════════════════
-       THEME / CUSTOMIZATION PANEL
-    ══════════════════════════════════════ */
-    #panel-theme {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 18px;
-      align-content: start;
-    }
-    .theme-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--clr-text-dim);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      display: block;
-    }
-    .theme-row {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .color-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .color-swatch {
-      width: 38px; height: 38px;
-      border-radius: 8px;
-      border: 2px solid var(--clr-border);
-      cursor: pointer;
-      transition: var(--transition);
-      flex-shrink: 0;
-    }
-    .color-swatch:hover { transform: scale(1.1); border-color: #fff; }
-    .color-name {
-      font-size: 0.85rem;
-      color: var(--clr-text-dim);
-      font-family: 'Share Tech Mono', monospace;
-    }
-    input[type="color"] { width: 0; height: 0; opacity: 0; position: absolute; }
-
-    /* Slider */
-    .themed-range {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, var(--clr-accent), rgba(0,180,255,0.2));
-      border-radius: 2px;
-      outline: none;
-      cursor: pointer;
-    }
-    .themed-range::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px; height: 16px;
-      border-radius: 50%;
-      background: var(--clr-accent);
-      box-shadow: var(--glow-sm);
-      cursor: pointer;
-      transition: box-shadow 0.2s;
-    }
-    .themed-range::-webkit-slider-thumb:hover { box-shadow: var(--glow-md); }
-
-    /* Preset themes */
-    .theme-presets {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .preset-chip {
-      padding: 7px 14px;
-      border-radius: 20px;
-      border: 1px solid var(--clr-border);
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      cursor: pointer;
-      transition: var(--transition);
-      background: var(--clr-surface2);
-      color: var(--clr-text-dim);
-    }
-    .preset-chip:hover, .preset-chip.active {
-      border-color: var(--clr-accent);
-      color: var(--clr-accent);
-      box-shadow: var(--glow-sm);
-    }
-
-    /* Toggle switch */
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 0;
-    }
-    .toggle-label {
-      font-size: 0.9rem;
-      color: var(--clr-text-dim);
-    }
-    .toggle {
-      width: 44px; height: 24px;
-      background: rgba(0,180,255,0.12);
-      border: 1px solid var(--clr-border);
-      border-radius: 12px;
-      position: relative;
-      cursor: pointer;
-      transition: var(--transition);
-      flex-shrink: 0;
-    }
-    .toggle::after {
-      content: '';
-      width: 16px; height: 16px;
-      background: var(--clr-text-dim);
-      border-radius: 50%;
-      position: absolute;
-      top: 3px; left: 3px;
-      transition: var(--transition);
-    }
-    .toggle.on {
-      background: rgba(0,180,255,0.25);
-      border-color: var(--clr-accent);
-    }
-    .toggle.on::after {
-      transform: translateX(20px);
-      background: var(--clr-accent);
-      box-shadow: var(--glow-sm);
-    }
-
-    /* ══════════════════════════════════════
-       CLOAKER PANEL
-    ══════════════════════════════════════ */
-    #panel-cloaker {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .cloak-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 10px;
-    }
-    .cloak-option {
-      background: var(--clr-surface2);
-      border: 2px solid var(--clr-border);
-      border-radius: var(--radius);
-      padding: 14px 12px;
-      cursor: pointer;
-      text-align: center;
-      transition: var(--transition);
-    }
-    .cloak-option:hover {
-      border-color: var(--clr-accent);
-      transform: translateY(-2px);
-    }
-    .cloak-option.selected {
-      border-color: var(--clr-accent);
-      background: rgba(0,180,255,0.1);
-      box-shadow: var(--glow-sm);
-    }
-    .cloak-option .c-icon { font-size: 1.6rem; margin-bottom: 6px; }
-    .cloak-option .c-name {
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      color: var(--clr-text-dim);
-    }
-    .cloak-option.selected .c-name { color: var(--clr-accent); }
-    .cloak-custom-row {
-      display: flex;
-      gap: 10px;
-    }
-    .cloak-input {
-      flex: 1;
-      background: rgba(0,180,255,0.07);
-      border: 1px solid var(--clr-border);
-      border-radius: 8px;
-      padding: 9px 14px;
-      color: var(--clr-text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.9rem;
-      outline: none;
-      transition: var(--transition);
-    }
-    .cloak-input:focus { border-color: var(--clr-accent); box-shadow: var(--glow-sm); }
-
-    /* ══════════════════════════════════════
-       FLOATING PARTICLES / AMBIENT
-    ══════════════════════════════════════ */
-    .ambient-dot {
-      position: fixed;
-      width: 3px; height: 3px;
-      background: var(--clr-accent);
-      border-radius: 50%;
-      pointer-events: none;
-      opacity: 0;
-      z-index: 2;
-      animation: floatDot linear infinite;
-    }
-    @keyframes floatDot {
-      0%   { opacity: 0; transform: translateY(0) scale(0); }
-      10%  { opacity: 0.6; transform: translateY(-20px) scale(1); }
-      90%  { opacity: 0.3; }
-      100% { opacity: 0; transform: translateY(-120px) scale(0); }
-    }
-
-    /* ══════════════════════════════════════
-       RESPONSIVE
-    ══════════════════════════════════════ */
-    @media (max-width: 600px) {
-      .taskbar-nav .nav-btn { font-size: 0.75rem; padding: 5px 8px; }
-      #clock { display: none; }
-      .panel { padding: 14px; }
-    }
-
-    /* ══════════════════════════════════════
-       TOAST NOTIFICATIONS
-    ══════════════════════════════════════ */
-    #toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 9000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
-    }
-    .toast {
-      background: rgba(4,14,36,0.95);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--clr-border);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-size: 0.85rem;
-      color: var(--clr-text);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      transform: translateX(120%);
-      transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .toast.show { transform: translateX(0); }
-    .toast-icon { font-size: 1rem; }
-
-    /* Scrollbar for panels */
-    .panel::-webkit-scrollbar { width: 3px; }
-    .panel::-webkit-scrollbar-thumb { background: rgba(0,180,255,0.3); }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Stars OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#04091a;
+  --s1:rgba(8,18,42,0.78);--s2:rgba(12,26,58,0.55);--s3:rgba(16,34,72,0.38);
+  --b:rgba(82,178,255,0.18);--bh:rgba(82,178,255,0.45);
+  --a1:#52b2ff;--a2:#9b5fff;--a3:#ff4f8b;--a4:#00e5a0;
+  --tx:#d6eaff;--tx2:rgba(180,215,255,0.55);--tx3:rgba(140,185,240,0.28);
+  --ga1:0 0 12px rgba(82,178,255,0.5),0 0 40px rgba(82,178,255,0.18);
+  --ga2:0 0 12px rgba(155,95,255,0.5);--ga3:0 0 12px rgba(255,79,139,0.5);
+  --glow:1;--blur:22px;--r:12px;--r2:20px;
+  --ease:cubic-bezier(0.22,1,0.36,1);--t:0.27s var(--ease);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--ink)}
+body{font-family:'DM Sans',sans-serif;color:var(--tx);user-select:none}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:rgba(82,178,255,0.3);border-radius:3px}
+input,textarea,button{font-family:inherit}
+/* scanlines */
+body::after{content:'';position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);}
+#bgc,#rc{position:fixed;inset:0;z-index:0;pointer-events:none}
+#rc{z-index:1;opacity:0.13}
+/* ──────── LOADER ──────── */
+#loader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 38%,#060e26,#020712);}
+.lp{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.38em;color:rgba(82,178,255,.38);
+  text-transform:uppercase;margin-bottom:18px;opacity:0;transition:opacity .5s ease .1s}
+.lp.v{opacity:1}
+.ll{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(3rem,9vw,6.5rem);
+  background:linear-gradient(135deg,#52b2ff,#9b5fff 45%,#ff4f8b);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 40px rgba(82,178,255,.6));
+  opacity:0;transform:translateY(26px) scale(.92);transition:all .9s var(--ease) .2s}
+.ll.v{opacity:1;transform:none}
+.lc{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.25em;
+  color:rgba(155,95,255,.6);text-transform:uppercase;margin-top:6px;
+  opacity:0;transition:opacity .6s ease .85s}
+.lc.v{opacity:1}
+.ls{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.38em;
+  color:rgba(82,178,255,.45);text-transform:uppercase;margin-top:12px;
+  opacity:0;transition:opacity .6s ease .65s}
+.ls.v{opacity:1}
+.lbw{width:min(300px,65vw);height:1px;background:rgba(82,178,255,.1);margin-top:34px;overflow:hidden}
+.lb{height:100%;width:0;background:linear-gradient(90deg,#52b2ff,#9b5fff,#ff4f8b);
+  box-shadow:0 0 10px #52b2ff;transition:width 2.6s cubic-bezier(.4,0,.2,1) .25s}
+.lstep{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:rgba(82,178,255,.38);
+  letter-spacing:.08em;margin-top:12px;height:16px;opacity:0;transition:opacity .5s ease .5s}
+.lstep.v{opacity:1}
+/* ──────── DESKTOP ──────── */
+#desktop{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transition:opacity .85s ease}
+#desktop.on{opacity:1;pointer-events:all}
+/* ──────── TASKBAR ──────── */
+#bar{height:54px;flex-shrink:0;display:flex;align-items:center;padding:0 18px;gap:5px;
+  background:rgba(3,8,22,.9);backdrop-filter:blur(28px) saturate(1.5);
+  border-bottom:1px solid var(--b);
+  box-shadow:0 2px 50px rgba(0,0,0,.7),0 1px 0 rgba(82,178,255,.05);z-index:200}
+.blogo{display:flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,rgba(82,178,255,.12),rgba(155,95,255,.08));
+  border:1px solid rgba(82,178,255,.22);border-radius:10px;padding:6px 14px 6px 10px;
+  cursor:pointer;transition:var(--t)}
+.blogo:hover{border-color:var(--a1);box-shadow:var(--ga1)}
+.blt{font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;letter-spacing:.05em;
+  background:linear-gradient(135deg,#52b2ff,#9b5fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.bsep{width:1px;height:26px;background:var(--b);margin:0 8px;flex-shrink:0}
+.bnav{display:flex;gap:2px;flex:1}
+.ni{position:relative}
+.nbtn{display:flex;align-items:center;gap:5px;background:none;border:none;
+  color:var(--tx2);font-size:.82rem;font-weight:500;letter-spacing:.04em;
+  padding:7px 12px;border-radius:9px;cursor:pointer;transition:var(--t)}
+.nbtn:hover,.nbtn.open{color:var(--a1);background:rgba(82,178,255,.1)}
+.arr{width:9px;height:9px;transition:transform .2s;opacity:.45}
+.nbtn.open .arr{transform:rotate(180deg)}
+.ndd{position:absolute;top:calc(100% + 9px);left:0;min-width:185px;
+  background:rgba(4,10,28,.97);backdrop-filter:blur(28px) saturate(1.4);
+  border:1px solid var(--b);border-radius:var(--r2);padding:5px;
+  opacity:0;pointer-events:none;transform:translateY(-5px) scale(.97);transform-origin:top left;
+  transition:all .2s var(--ease);z-index:500;
+  box-shadow:0 16px 55px rgba(0,0,0,.8)}
+.ndd.on{opacity:1;pointer-events:all;transform:none}
+.ndd a{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:9px;
+  color:var(--tx2);font-size:.83rem;font-weight:500;cursor:pointer;transition:var(--t);text-decoration:none}
+.ndd a:hover{color:var(--a1);background:rgba(82,178,255,.1)}
+.di{width:27px;height:27px;border-radius:7px;background:var(--s3);border:1px solid var(--b);
+  display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.br{display:flex;align-items:center;gap:7px;margin-left:auto}
+#clk{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--a1);letter-spacing:.06em;
+  background:rgba(82,178,255,.07);border:1px solid rgba(82,178,255,.14);
+  border-radius:9px;padding:5px 11px;white-space:nowrap}
+.bic{width:33px;height:33px;border-radius:9px;background:rgba(82,178,255,.06);
+  border:1px solid var(--b);display:flex;align-items:center;justify-content:center;
+  font-size:.95rem;cursor:pointer;transition:var(--t);color:var(--tx2)}
+.bic:hover{background:rgba(82,178,255,.15);color:var(--a1);box-shadow:var(--ga1);border-color:var(--a1)}
+.sbadge{display:flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,rgba(155,95,255,.14),rgba(255,79,139,.08));
+  border:1px solid rgba(155,95,255,.28);border-radius:20px;padding:4px 12px 4px 8px;
+  font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;
+  color:rgba(155,95,255,.82);white-space:nowrap}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--a2);
+  box-shadow:0 0 8px var(--a2);animation:sdp 2s ease infinite}
+@keyframes sdp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
+/* ──────── MAIN / PANELS ──────── */
+#main{flex:1;position:relative;overflow:hidden}
+.panel{position:absolute;inset:0;padding:20px 22px;overflow-y:auto;
+  opacity:0;pointer-events:none;transform:translateY(7px);
+  transition:opacity .3s ease,transform .3s var(--ease)}
+.panel.on{opacity:1;pointer-events:all;transform:none}
+/* ──────── CARD ──────── */
+.card{background:var(--s1);backdrop-filter:blur(var(--blur)) saturate(1.3);
+  border:1px solid var(--b);border-radius:var(--r2);padding:19px 21px;
+  box-shadow:0 8px 38px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.035);transition:var(--t)}
+.card:hover{border-color:var(--bh)}
+/* ──────── SECTION TITLE ──────── */
+.stitle{font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;letter-spacing:.05em;
+  color:var(--tx);margin-bottom:17px;display:flex;align-items:center;gap:9px}
+.sti{width:32px;height:32px;border-radius:9px;
+  background:linear-gradient(135deg,rgba(82,178,255,.2),rgba(155,95,255,.14));
+  border:1px solid var(--bh);display:flex;align-items:center;justify-content:center;font-size:.95rem}
+.sttag{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.18em;
+  color:var(--a1);background:rgba(82,178,255,.1);border:1px solid rgba(82,178,255,.2);
+  border-radius:5px;padding:2px 7px;text-transform:uppercase}
+.stitle::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(82,178,255,.22),transparent);margin-left:4px}
+/* ──────── BUTTONS ──────── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 19px;border-radius:10px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.1em;
+  text-transform:uppercase;cursor:pointer;transition:var(--t);border:1px solid transparent}
+.bp{background:linear-gradient(135deg,rgba(82,178,255,.18),rgba(155,95,255,.12));
+  border-color:var(--a1);color:var(--a1)}
+.bp:hover{box-shadow:var(--ga1);transform:translateY(-1px)}
+.br3{background:rgba(255,79,139,.1);border-color:var(--a3);color:var(--a3)}
+.br3:hover{box-shadow:var(--ga3);transform:translateY(-1px)}
+.bv{background:rgba(155,95,255,.1);border-color:var(--a2);color:var(--a2)}
+.bv:hover{box-shadow:var(--ga2);transform:translateY(-1px)}
+.bm{background:rgba(0,229,160,.1);border-color:var(--a4);color:var(--a4)}
+.bm:hover{box-shadow:0 0 12px rgba(0,229,160,.5);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)!important}
+/* ──────── HOME ──────── */
+#ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:15px;align-content:start}
+.hero{grid-column:1/-1;
+  background:linear-gradient(135deg,rgba(82,178,255,.07),rgba(155,95,255,.09) 55%,rgba(255,79,139,.05));
+  border-color:rgba(82,178,255,.23);padding:26px 28px}
+.heyebrow{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--a1);
+  letter-spacing:.35em;text-transform:uppercase;margin-bottom:9px}
+.htitle{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.5rem,3.5vw,2.4rem);
+  background:linear-gradient(135deg,#52b2ff,#9b5fff,#ff4f8b);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 28px rgba(82,178,255,.32));line-height:1.1;margin-bottom:6px}
+.hsub{color:var(--tx2);font-size:.88rem;line-height:1.68;max-width:540px;margin-bottom:19px;font-weight:300}
+.hbtns{display:flex;gap:9px;flex-wrap:wrap}
+.hcred{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;
+  color:rgba(155,95,255,.55);letter-spacing:.2em;text-transform:uppercase;
+  margin-top:15px;display:flex;align-items:center;gap:6px}
+.hcred::before{content:'';width:16px;height:1px;background:rgba(155,95,255,.4)}
+.sw h4{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.2em;
+  color:var(--tx3);text-transform:uppercase;margin-bottom:13px}
+.sbig{font-family:'Syne',sans-serif;font-weight:800;font-size:2.3rem;
+  color:var(--a1);line-height:1;text-shadow:var(--ga1)}
+.slbl{font-size:.78rem;color:var(--tx2);margin-top:4px;font-weight:300}
+.srow{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.82rem}
+.srow:last-child{border-bottom:none}
+.srow .k{color:var(--tx2);font-weight:300}.srow .v{font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--a1)}
+/* ──────── GAMES ──────── */
+#pg{display:flex;flex-direction:column;gap:16px}
+.sbar{flex:1;background:rgba(82,178,255,.06);border:1px solid var(--b);
+  border-radius:11px;padding:10px 15px;color:var(--tx);font-size:.88rem;outline:none;transition:var(--t)}
+.sbar:focus{border-color:var(--a1);box-shadow:var(--ga1);background:rgba(82,178,255,.1)}
+.sbar::placeholder{color:var(--tx3)}
+.sbrow{display:flex;gap:9px}
+.cats{display:flex;gap:7px;flex-wrap:wrap}
+.cat{display:flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;
+  background:rgba(82,178,255,.06);border:1px solid rgba(82,178,255,.14);
+  font-family:'Syne',sans-serif;font-size:.73rem;font-weight:700;letter-spacing:.06em;
+  color:var(--tx2);cursor:pointer;transition:var(--t)}
+.cat:hover{border-color:var(--a1);color:var(--a1)}
+.cat.on{background:rgba(82,178,255,.14);border-color:var(--a1);color:var(--a1);box-shadow:var(--ga1)}
+/* add-games hint */
+.addnote{background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.18);
+  border-radius:var(--r);padding:11px 15px;
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;color:rgba(0,229,160,.65);line-height:1.9}
+.addnote strong{color:#00e5a0}
+/* game grid */
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.gc{background:var(--s2);border:1px solid var(--b);border-radius:var(--r2);
+  overflow:hidden;cursor:pointer;transition:var(--t);position:relative}
+.gc:hover{border-color:var(--bh);transform:translateY(-5px) scale(1.015);
+  box-shadow:0 16px 48px rgba(0,0,0,.55),0 0 22px rgba(82,178,255,calc(0.16 * var(--glow)))}
+.gthumb{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+  font-size:2.7rem;position:relative;overflow:hidden}
+.gplay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.42);backdrop-filter:blur(3px);opacity:0;transition:opacity .22s}
+.gplay span{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:800;letter-spacing:.22em;color:#fff;
+  background:rgba(82,178,255,.22);border:1px solid var(--a1);border-radius:20px;padding:5px 16px}
+.gc:hover .gplay{opacity:1}
+.gbody{padding:10px 12px 12px}
+.gname{font-family:'Syne',sans-serif;font-weight:700;font-size:.86rem;letter-spacing:.02em;margin-bottom:6px}
+.gfoot{display:flex;align-items:center;justify-content:space-between}
+.gtag{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.1em;
+  border-radius:5px;padding:2px 7px;text-transform:uppercase}
+.ta{background:rgba(255,79,139,.1);border:1px solid rgba(255,79,139,.28);color:#ff4f8b}
+.tc{background:rgba(0,229,160,.09);border:1px solid rgba(0,229,160,.28);color:#00e5a0}
+.tp{background:rgba(155,95,255,.1);border:1px solid rgba(155,95,255,.28);color:#9b5fff}
+.tk{background:rgba(255,190,0,.09);border:1px solid rgba(255,190,0,.28);color:#ffbe00}
+.ts{background:rgba(82,178,255,.09);border:1px solid rgba(82,178,255,.28);color:#52b2ff}
+.ti{background:rgba(255,140,0,.09);border:1px solid rgba(255,140,0,.28);color:#ff8c00}
+.gstars{font-size:.7rem;color:rgba(255,190,0,.65)}
+/* ──────── GAME OVERLAY ──────── */
+#gol{position:fixed;inset:0;z-index:600;background:#000;
+  display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .28s ease}
+#gol.on{opacity:1;pointer-events:all}
+.gobar{height:46px;flex-shrink:0;display:flex;align-items:center;padding:0 15px;gap:11px;
+  background:rgba(2,6,18,.97);backdrop-filter:blur(18px);border-bottom:1px solid var(--b)}
+.gotitle{font-family:'Syne',sans-serif;font-weight:800;font-size:.88rem;letter-spacing:.08em;color:var(--a1);flex:1}
+#gif{flex:1;border:none;width:100%}
+/* ──────── AI ──────── */
+#pai{display:flex;flex-direction:column;gap:13px;height:100%}
+.apin{background:rgba(255,190,0,.06);border:1px solid rgba(255,190,0,.2);
+  border-radius:var(--r);padding:12px 15px;display:flex;gap:9px;flex-wrap:wrap}
+.apin p{font-size:.8rem;color:rgba(255,200,100,.72);line-height:1.62;flex:1}
+.apin code{font-family:'JetBrains Mono',monospace;font-size:.75rem;
+  background:rgba(255,190,0,.1);padding:1px 5px;border-radius:4px;color:#ffc555}
+.akf{width:100%;background:rgba(0,0,0,.32);border:1px solid rgba(255,190,0,.22);
+  border-radius:8px;padding:7px 13px;color:#ffc555;font-family:'JetBrains Mono',monospace;
+  font-size:.76rem;outline:none;margin-top:7px;transition:var(--t)}
+.akf:focus{border-color:#ffc555}
+.chatwin{flex:1;min-height:220px;max-height:calc(100vh - 305px);overflow-y:auto;
+  display:flex;flex-direction:column;gap:12px;padding:16px}
+.msg{display:flex;gap:8px;max-width:80%;animation:mi .26s ease}
+@keyframes mi{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.msg.u{margin-left:auto;flex-direction:row-reverse}
+.av{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;flex-shrink:0}
+.av.b{background:rgba(82,178,255,.2);border:1px solid rgba(82,178,255,.38);color:var(--a1)}
+.av.ua{background:rgba(155,95,255,.2);border:1px solid rgba(155,95,255,.38);color:var(--a2)}
+.bbl{background:var(--s1);border:1px solid var(--b);border-radius:12px;
+  padding:9px 13px;font-size:.86rem;line-height:1.62;backdrop-filter:blur(8px)}
+.msg.u .bbl{background:rgba(155,95,255,.12);border-color:rgba(155,95,255,.28)}
+.airow{display:flex;gap:8px;align-items:flex-end}
+.aita{flex:1;background:rgba(82,178,255,.06);border:1px solid var(--b);
+  border-radius:11px;padding:10px 14px;color:var(--tx);font-size:.88rem;
+  resize:none;outline:none;transition:var(--t);min-height:42px;max-height:105px}
+.aita:focus{border-color:var(--a1);box-shadow:var(--ga1)}
+.aita::placeholder{color:var(--tx3)}
+.ainote{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--tx3);text-align:center}
+/* ──────── PROXY ──────── */
+#pxp{display:flex;flex-direction:column;gap:15px}
+.pxbar{display:flex;gap:8px}
+.pxin{flex:1;background:rgba(82,178,255,.06);border:1px solid var(--b);
+  border-radius:11px;padding:9px 15px;color:var(--tx);font-family:'JetBrains Mono',monospace;
+  font-size:.82rem;outline:none;transition:var(--t)}
+.pxin:focus{border-color:var(--a1);box-shadow:var(--ga1)}
+.pxg{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:9px}
+.pxo{background:var(--s2);border:1px solid var(--b);border-radius:var(--r);
+  padding:14px;cursor:pointer;text-align:center;transition:var(--t)}
+.pxo:hover{border-color:var(--a1);background:rgba(82,178,255,.07);transform:translateY(-2px)}
+.pxi{font-size:1.7rem;margin-bottom:6px}
+.pxn{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--tx2)}
+.pxs{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:rgba(255,190,0,.55);margin-top:3px}
+.pxph{flex:1;min-height:240px;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:11px;border:1px solid var(--b);border-radius:var(--r2);background:var(--s3)}
+.pxph .phi{font-size:2.8rem;opacity:.28}
+.pxph h3{font-family:'Syne',sans-serif;font-size:.9rem;letter-spacing:.14em;color:var(--tx2)}
+.pxph p{font-size:.78rem;color:var(--tx3);text-align:center;max-width:340px;line-height:1.72}
+/* ──────── THEME ──────── */
+#pth{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px;align-content:start}
+.thl{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--tx3);
+  letter-spacing:.15em;text-transform:uppercase;display:block;margin-bottom:9px}
+.prow{display:flex;gap:7px;flex-wrap:wrap}
+.pch{padding:5px 13px;border-radius:18px;border:1px solid var(--b);
+  font-family:'Syne',sans-serif;font-size:.73rem;font-weight:700;letter-spacing:.05em;
+  cursor:pointer;transition:var(--t);background:var(--s3);color:var(--tx2)}
+.pch:hover,.pch.on{border-color:var(--a1);color:var(--a1);background:rgba(82,178,255,.1)}
+.crow{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.csw{width:35px;height:35px;border-radius:7px;border:2px solid var(--b);
+  cursor:pointer;transition:var(--t);flex-shrink:0}
+.csw:hover{transform:scale(1.1);border-color:#fff}
+.cnm{font-family:'JetBrains Mono',monospace;font-size:.73rem;color:var(--tx2)}
+input[type=color]{width:0;height:0;opacity:0;position:absolute}
+.rng{-webkit-appearance:none;width:100%;height:3px;
+  background:linear-gradient(90deg,var(--a1),rgba(82,178,255,.18));
+  border-radius:2px;outline:none;cursor:pointer}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;
+  border-radius:50%;background:var(--a1);box-shadow:0 0 8px var(--a1);cursor:pointer}
+.rrow{display:flex;justify-content:space-between;margin-top:4px}
+.rrow span{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--tx3)}
+.tgrow{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 0;border-bottom:1px solid rgba(255,255,255,.035)}
+.tgrow:last-child{border-bottom:none}
+.tgl{font-size:.85rem;color:var(--tx2);font-weight:300}
+.tg{width:40px;height:21px;border-radius:11px;background:rgba(82,178,255,.09);
+  border:1px solid var(--b);position:relative;cursor:pointer;transition:var(--t);flex-shrink:0}
+.tg::after{content:'';width:13px;height:13px;border-radius:50%;background:var(--tx3);
+  position:absolute;top:3px;left:3px;transition:var(--t)}
+.tg.on{background:rgba(82,178,255,.2);border-color:var(--a1)}
+.tg.on::after{transform:translateX(19px);background:var(--a1);box-shadow:0 0 8px var(--a1)}
+/* ──────── CLOAKER ──────── */
+#pclk{display:flex;flex-direction:column;gap:15px}
+.wbox{background:rgba(255,79,139,.05);border:1px solid rgba(255,79,139,.18);
+  border-radius:var(--r);padding:11px 15px;display:flex;gap:9px;align-items:flex-start}
+.wbox p{font-size:.82rem;color:rgba(255,160,170,.72);line-height:1.62;font-weight:300}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+.co{background:var(--s2);border:2px solid var(--b);border-radius:var(--r);
+  padding:12px 10px;cursor:pointer;text-align:center;transition:var(--t)}
+.co:hover{border-color:var(--a1);transform:translateY(-2px)}
+.co.on{border-color:var(--a1);background:rgba(82,178,255,.1);box-shadow:var(--ga1)}
+.ci{font-size:1.45rem;margin-bottom:4px}
+.cn{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.06em;color:var(--tx2)}
+.co.on .cn{color:var(--a1)}
+.clcust{display:flex;flex-direction:column;gap:7px}
+.clin{background:rgba(82,178,255,.06);border:1px solid var(--b);
+  border-radius:9px;padding:8px 13px;color:var(--tx);font-size:.86rem;outline:none;transition:var(--t)}
+.clin:focus{border-color:var(--a1);box-shadow:var(--ga1)}
+.clin::placeholder{color:var(--tx3)}
+.clrow{display:flex;gap:8px}
+.csc{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:11px}
+.csi h4{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:3px;font-size:.95rem}
+.csi p{font-family:'JetBrains Mono',monospace;font-size:.73rem;color:var(--tx2)}
+#cst{color:var(--a1)}
+/* ──────── CREDITS ──────── */
+#pcr{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:22px;text-align:center;padding:36px}
+.crstar{font-size:4rem;animation:crg 5s ease infinite}
+@keyframes crg{0%{filter:drop-shadow(0 0 28px rgba(82,178,255,.7))}
+50%{filter:drop-shadow(0 0 28px rgba(155,95,255,.7))}
+100%{filter:drop-shadow(0 0 28px rgba(255,79,139,.7))}}
+.crname{font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(2rem,6vw,3.8rem);letter-spacing:.01em;
+  background:linear-gradient(135deg,#52b2ff,#9b5fff 50%,#ff4f8b);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.crtag{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:rgba(155,95,255,.55);
+  letter-spacing:.3em;text-transform:uppercase;margin-top:-14px}
+.crcard{max-width:460px;width:100%}
+.crrow{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.045);font-size:.86rem}
+.crrow:last-child{border-bottom:none}
+.crrow .ck{color:var(--tx3);font-weight:300}.crrow .cv{color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:.78rem}
+/* ──────── TOASTS ──────── */
+#tst{position:fixed;bottom:20px;right:20px;z-index:9000;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.tt{background:rgba(4,10,28,.97);backdrop-filter:blur(18px);border:1px solid var(--b);
+  border-radius:10px;padding:9px 15px;font-size:.81rem;color:var(--tx);
+  display:flex;align-items:center;gap:7px;
+  box-shadow:0 4px 22px rgba(0,0,0,.6);
+  transform:translateX(110%);transition:transform .28s var(--ease)}
+.tt.on{transform:translateX(0)}
+/* ──────── PARTICLES ──────── */
+.adot{position:fixed;width:2px;height:2px;background:var(--a1);border-radius:50%;
+  pointer-events:none;z-index:2;animation:ad linear infinite}
+@keyframes ad{0%{opacity:0;transform:translateY(0) scale(0)}10%{opacity:.75}90%{opacity:.2}100%{opacity:0;transform:translateY(-140px) scale(0)}}
+@media(max-width:560px){.sbadge,.blt{display:none}#clk{display:none}.panel{padding:10px}}
+</style>
 </head>
 <body>
+<canvas id="bgc"></canvas>
+<canvas id="rc"></canvas>
+<div id="tst"></div>
 
-<!-- ══════════════════════════════════════════════
-     THREE.JS BACKGROUND — 3D Planet + Stars
-══════════════════════════════════════════════════ -->
-<canvas id="bg-canvas"></canvas>
+<!-- GAME OVERLAY -->
+<div id="gol">
+  <div class="gobar">
+    <div class="gotitle" id="gotitle">Game</div>
+    <button class="btn br3" onclick="closeGame()">✕ Exit</button>
+  </div>
+  <iframe id="gif" src="about:blank" allowfullscreen></iframe>
+</div>
 
-<!-- ══════════════════════════════════════════════
-     RAIN PARTICLE CANVAS
-══════════════════════════════════════════════════ -->
-<canvas id="rain-canvas"></canvas>
-
-<!-- ══════════════════════════════════════════════
-     LOADING SCREEN
-══════════════════════════════════════════════════ -->
+<!-- LOADER -->
 <div id="loader">
-  <div class="loader-logo" id="loader-logo">⋆ STARS OS ⋆</div>
-  <div class="loader-tagline" id="loader-tagline">INITIALIZING SYSTEM CORE</div>
-  <div class="loader-bar-wrap">
-    <div class="loader-bar" id="loader-bar"></div>
-  </div>
-  <div class="loader-steps" id="loader-steps"></div>
+  <div class="lp" id="lp">⋆ stars os ⋆</div>
+  <div class="ll" id="ll">Stars OS</div>
+  <div class="lc" id="lc">by Samuel · Exclusive</div>
+  <div class="ls" id="ls">initializing</div>
+  <div class="lbw"><div class="lb" id="lb"></div></div>
+  <div class="lstep" id="lsv"></div>
 </div>
 
-<!-- ══════════════════════════════════════════════
-     TOAST CONTAINER
-══════════════════════════════════════════════════ -->
-<div id="toast-container"></div>
-
-<!-- ══════════════════════════════════════════════
-     FULLSCREEN GAME OVERLAY
-══════════════════════════════════════════════════ -->
-<div id="game-overlay">
-  <div class="game-overlay-bar">
-    <span class="game-overlay-title" id="game-overlay-title">Loading game...</span>
-    <button class="btn-neon btn-neon-danger" onclick="closeGame()">
-      <span>✕ EXIT</span>
-    </button>
-  </div>
-  <iframe id="game-iframe" src="about:blank" allowfullscreen></iframe>
-</div>
-
-<!-- ══════════════════════════════════════════════
-     DESKTOP SHELL
-══════════════════════════════════════════════════ -->
+<!-- DESKTOP -->
 <div id="desktop">
-
-  <!-- ── TASKBAR ── -->
-  <div id="taskbar">
-    <div class="taskbar-logo" onclick="showPanel('home')">⋆ STARS OS</div>
-    <div class="taskbar-divider"></div>
-
-    <nav class="taskbar-nav">
-
-      <!-- Games dropdown -->
-      <div class="nav-item" id="nav-games">
-        <button class="nav-btn" onclick="toggleDropdown('dd-games','nav-games')">
-          🎮 Games
-          <svg viewBox="0 0 10 6" fill="currentColor"><path d="M0 0l5 6 5-6z"/></svg>
+  <div id="bar">
+    <div class="blogo" onclick="show('h')">
+      <span style="font-size:1.1rem">⋆</span>
+      <span class="blt">Stars OS</span>
+    </div>
+    <div class="bsep"></div>
+    <nav class="bnav">
+      <div class="ni" id="nig">
+        <button class="nbtn" onclick="tdrop('ddg','nig')">🎮 Games
+          <svg class="arr" viewBox="0 0 10 6" fill="currentColor"><path d="M0 0l5 6 5-6z"/></svg>
         </button>
-        <div class="nav-dropdown" id="dd-games">
-          <a onclick="showPanel('games'); filterCat('all'); closeDropdowns()"><span class="dd-icon">🎲</span> All Games</a>
-          <a onclick="showPanel('games'); filterCat('action'); closeDropdowns()"><span class="dd-icon">⚡</span> Action</a>
-          <a onclick="showPanel('games'); filterCat('arcade'); closeDropdowns()"><span class="dd-icon">🕹️</span> Arcade</a>
-          <a onclick="showPanel('games'); filterCat('puzzle'); closeDropdowns()"><span class="dd-icon">🧩</span> Puzzle</a>
-          <a onclick="showPanel('games'); filterCat('card'); closeDropdowns()"><span class="dd-icon">🃏</span> Card</a>
+        <div class="ndd" id="ddg">
+          <a onclick="show('g');fc('all');cdd()"><span class="di">🎲</span>All Games</a>
+          <a onclick="show('g');fc('action');cdd()"><span class="di">⚡</span>Action</a>
+          <a onclick="show('g');fc('arcade');cdd()"><span class="di">🕹️</span>Arcade</a>
+          <a onclick="show('g');fc('puzzle');cdd()"><span class="di">🧩</span>Puzzle</a>
+          <a onclick="show('g');fc('card');cdd()"><span class="di">🃏</span>Card</a>
+          <a onclick="show('g');fc('sport');cdd()"><span class="di">🏆</span>Sport</a>
+          <a onclick="show('g');fc('idle');cdd()"><span class="di">💤</span>Idle</a>
         </div>
       </div>
-
-      <!-- Tools dropdown -->
-      <div class="nav-item" id="nav-tools">
-        <button class="nav-btn" onclick="toggleDropdown('dd-tools','nav-tools')">
-          🛠 Tools
-          <svg viewBox="0 0 10 6" fill="currentColor"><path d="M0 0l5 6 5-6z"/></svg>
+      <div class="ni" id="nit">
+        <button class="nbtn" onclick="tdrop('ddt','nit')">🛠 Tools
+          <svg class="arr" viewBox="0 0 10 6" fill="currentColor"><path d="M0 0l5 6 5-6z"/></svg>
         </button>
-        <div class="nav-dropdown" id="dd-tools">
-          <a onclick="showPanel('ai'); closeDropdowns()"><span class="dd-icon">🤖</span> AI Assistant</a>
-          <a onclick="showPanel('proxy'); closeDropdowns()"><span class="dd-icon">🌐</span> Proxy Browser</a>
-          <a onclick="showPanel('cloaker'); closeDropdowns()"><span class="dd-icon">🎭</span> Tab Cloaker</a>
-          <a onclick="showPanel('theme'); closeDropdowns()"><span class="dd-icon">🎨</span> Customize</a>
+        <div class="ndd" id="ddt">
+          <a onclick="show('ai');cdd()"><span class="di">🤖</span>AI Assistant</a>
+          <a onclick="show('px');cdd()"><span class="di">🌐</span>Proxy</a>
+          <a onclick="show('clk');cdd()"><span class="di">🎭</span>Cloaker</a>
+          <a onclick="show('th');cdd()"><span class="di">🎨</span>Theme</a>
+          <a onclick="show('cr');cdd()"><span class="di">⭐</span>Credits</a>
         </div>
       </div>
-
-      <!-- Direct links -->
-      <button class="nav-btn" onclick="showPanel('ai')">🤖 AI</button>
-      <button class="nav-btn" onclick="showPanel('proxy')">🌐 Proxy</button>
-      <button class="nav-btn" onclick="showPanel('cloaker')">🎭 Cloak</button>
-
+      <button class="nbtn" onclick="show('ai')">🤖 AI</button>
+      <button class="nbtn" onclick="show('px')">🌐 Proxy</button>
+      <button class="nbtn" onclick="show('clk')">🎭 Cloak</button>
     </nav>
-
-    <!-- Right section: clock + icons -->
-    <div class="taskbar-right">
-      <div id="clock">00:00:00</div>
-      <div class="taskbar-icon-btn" title="Customize" onclick="showPanel('theme')">🎨</div>
-      <div class="taskbar-icon-btn" title="Fullscreen" onclick="toggleFullscreen()">⛶</div>
+    <div class="br">
+      <div class="sbadge"><div class="sdot"></div>Samuel's Only</div>
+      <div id="clk">00:00:00</div>
+      <div class="bic" onclick="show('th')" title="Theme">🎨</div>
+      <div class="bic" onclick="goFS()" title="Fullscreen">⛶</div>
     </div>
   </div>
 
-  <!-- ── MAIN AREA ── -->
-  <div id="main-area">
-
-    <!-- ══ HOME / DASHBOARD ══ -->
-    <div class="panel active" id="panel-home">
-
-      <!-- Welcome card -->
-      <div class="glass-card welcome-card home-widget">
-        <div class="welcome-title">WELCOME TO STARS OS</div>
-        <div class="welcome-sub">
-          Your premium browser-based operating system. Launch games, browse anonymously, chat with AI, and customize your experience — all from one sleek interface.
+  <div id="main">
+    <!-- HOME -->
+    <div class="panel on" id="ph">
+      <div class="card hero">
+        <div class="heyebrow">✦ Samuel's Exclusive Browser OS</div>
+        <div class="htitle">Welcome to Stars OS</div>
+        <div class="hsub">A futuristic single-file web operating system. Launch games, browse anonymously, chat with AI, and customize everything — all in your browser.</div>
+        <div class="hbtns">
+          <button class="btn bp" onclick="show('g')">🎮 Games</button>
+          <button class="btn bv" onclick="show('ai')">🤖 AI Chat</button>
+          <button class="btn bm" onclick="show('px')">🌐 Proxy</button>
+          <button class="btn br3" onclick="show('cr')">⭐ Credits</button>
         </div>
-        <div class="quick-launch">
-          <button class="btn-neon" onclick="showPanel('games')"><span>🎮 Launch Games</span></button>
-          <button class="btn-neon btn-neon-purple" onclick="showPanel('ai')"><span>🤖 AI Assistant</span></button>
-          <button class="btn-neon btn-neon-danger" onclick="showPanel('proxy')"><span>🌐 Proxy</span></button>
-        </div>
+        <div class="hcred">Samuel's Only — Exclusive Build v2.0</div>
       </div>
-
-      <!-- Stats widgets -->
-      <div class="glass-card home-widget">
-        <h3>🎮 Game Library</h3>
-        <div class="widget-value" id="stat-games">12</div>
-        <div class="widget-sub">Games Available</div>
+      <div class="card sw"><h4>🎮 Library</h4><div class="sbig" id="shg">16</div><div class="slbl">Games available</div></div>
+      <div class="card sw"><h4>⏱ Session</h4><div class="sbig" id="shs">00:00</div><div class="slbl">Active time</div></div>
+      <div class="card sw"><h4>🌡 System</h4>
+        <div class="srow"><span class="k">Engine</span><span class="v">Three.js ✓</span></div>
+        <div class="srow"><span class="k">WebGL</span><span class="v">Ready ✓</span></div>
+        <div class="srow"><span class="k">AI</span><span class="v">Standby</span></div>
+        <div class="srow"><span class="k">Cloaker</span><span class="v" id="shc">OFF</span></div>
       </div>
-
-      <div class="glass-card home-widget">
-        <h3>🕒 Session Time</h3>
-        <div class="widget-value" id="stat-session">00:00</div>
-        <div class="widget-sub">Active since boot</div>
+      <div class="card sw"><h4>🎨 Theme</h4>
+        <div class="srow"><span class="k">Preset</span><span class="v" id="sht">Nebula</span></div>
+        <div class="srow"><span class="k">Glow</span><span class="v" id="shgl">100%</span></div>
+        <div class="srow"><span class="k">Blur</span><span class="v" id="shbl">22px</span></div>
+        <div style="margin-top:13px"><button class="btn bp" style="width:100%" onclick="show('th')">Customize →</button></div>
       </div>
-
-      <div class="glass-card home-widget">
-        <h3>🌡 System Status</h3>
-        <div class="stat-row"><span class="label">Engine</span><span class="val">Three.js ✓</span></div>
-        <div class="stat-row"><span class="label">Renderer</span><span class="val">WebGL ✓</span></div>
-        <div class="stat-row"><span class="label">AI Core</span><span class="val">Ready</span></div>
-        <div class="stat-row"><span class="label">Cloaker</span><span class="val" id="stat-cloak">OFF</span></div>
-      </div>
-
-      <div class="glass-card home-widget">
-        <h3>🎨 Active Theme</h3>
-        <div class="stat-row"><span class="label">Preset</span><span class="val" id="stat-theme-name">Nebula Blue</span></div>
-        <div class="stat-row"><span class="label">Glow</span><span class="val" id="stat-glow">100%</span></div>
-        <div class="stat-row"><span class="label">Blur</span><span class="val" id="stat-blur">18px</span></div>
-        <div style="margin-top:14px">
-          <button class="btn-neon" style="width:100%" onclick="showPanel('theme')"><span>Open Customizer</span></button>
-        </div>
-      </div>
-
     </div>
 
-    <!-- ══ GAMES PANEL ══ -->
-    <div class="panel" id="panel-games">
-      <div class="section-header">
-        🎮 GAME LIBRARY
-        <span class="section-tag">ARCADE</span>
+    <!-- GAMES -->
+    <div class="panel" id="pg">
+      <div class="stitle"><span class="sti">🎮</span>Game Library<span class="sttag">16 Games</span></div>
+      <div class="sbrow">
+        <input class="sbar" type="text" placeholder="🔍  Search games..." oninput="fsearch(this.value)"/>
+        <button class="btn bp" onclick="fc('all')">All</button>
       </div>
-
-      <div class="game-search-row" style="margin-bottom:16px">
-        <input class="search-input" type="text" placeholder="🔍  Search games..." oninput="filterGames(this.value)" />
-        <button class="btn-neon" onclick="filterCat('all')"><span>All</span></button>
+      <div class="cats" id="cats">
+        <div class="cat on" onclick="fc('all',this)">⚡ All</div>
+        <div class="cat" onclick="fc('action',this)">🔥 Action</div>
+        <div class="cat" onclick="fc('arcade',this)">🕹️ Arcade</div>
+        <div class="cat" onclick="fc('puzzle',this)">🧩 Puzzle</div>
+        <div class="cat" onclick="fc('card',this)">🃏 Card</div>
+        <div class="cat" onclick="fc('sport',this)">🏆 Sport</div>
+        <div class="cat" onclick="fc('idle',this)">💤 Idle</div>
       </div>
-
-      <div class="category-tabs" id="cat-tabs" style="margin-bottom:20px">
-        <div class="cat-tab active" onclick="filterCat('all',this)">⚡ All</div>
-        <div class="cat-tab" onclick="filterCat('action',this)">🔥 Action</div>
-        <div class="cat-tab" onclick="filterCat('arcade',this)">🕹️ Arcade</div>
-        <div class="cat-tab" onclick="filterCat('puzzle',this)">🧩 Puzzle</div>
-        <div class="cat-tab" onclick="filterCat('card',this)">🃏 Card</div>
+      <!-- HOW TO ADD GAMES -->
+      <div class="addnote">
+        <strong>➕ Adding Games:</strong> Find the <strong>GAMES</strong> array in the &lt;script&gt; tag.
+        Add: <strong>{ name:'Title', cat:'arcade', icon:'🎯', url:'https://...', color:'#hex', stars:'★★★☆☆' }</strong>
+        · Categories: <strong>action · arcade · puzzle · card · sport · idle</strong>
       </div>
-
-      <div class="games-grid" id="games-grid"></div>
+      <div class="ggrid" id="ggrid"></div>
     </div>
 
-    <!-- ══ AI ASSISTANT ══ -->
-    <div class="panel" id="panel-ai" style="display:flex;flex-direction:column;gap:14px;">
-      <div class="section-header">
-        🤖 AI ASSISTANT
-        <span class="section-tag">POWERED BY CLAUDE</span>
-      </div>
-
-      <!-- API KEY NOTICE — Replace YOUR_API_KEY below with your actual key -->
-      <div class="ai-config">
-        <span class="ai-config-icon">⚙️</span>
+    <!-- AI -->
+    <div class="panel" id="pai">
+      <div class="stitle"><span class="sti">🤖</span>AI Assistant<span class="sttag">Claude</span></div>
+      <div class="apin">
+        <span style="font-size:1.1rem">🔑</span>
         <div style="flex:1">
-          <p>
-            <strong style="color:#ffa040">API Key Required:</strong>
-            To activate the AI assistant, enter your Anthropic API key below.
-            The key is stored only in your browser session and never sent anywhere except the Anthropic API.
-            Get your key at <code>console.anthropic.com</code>
-          </p>
-          <input class="api-key-input" type="password" id="api-key-input"
-            placeholder="sk-ant-YOUR_API_KEY_HERE"
-            oninput="updateApiKey(this.value)" />
+          <p><strong style="color:#ffc555">API Key Required</strong> — Enter your Anthropic key below (session only, never stored). Get one at <code>console.anthropic.com</code></p>
+          <input class="akf" type="password" id="akey" placeholder="sk-ant-YOUR_KEY_HERE" oninput="setKey(this.value)"/>
         </div>
       </div>
-
-      <div class="glass-card ai-chat-window" id="ai-chat">
-        <!-- Messages appear here -->
-        <div class="ai-msg">
-          <div class="ai-avatar bot">★</div>
-          <div class="ai-bubble">
-            Hello! I'm <strong style="color:var(--clr-accent)">Stars AI</strong>, your intelligent assistant.
-            Configure your API key above, then ask me anything — games recommendations, coding help, creative writing, and more.
-          </div>
+      <div class="card chatwin" id="chat">
+        <div class="msg"><div class="av b">★</div>
+          <div class="bbl">Hey! I'm <strong style="color:var(--a1)">Stars AI</strong> — Samuel's exclusive assistant. Add your API key and ask me anything.<br/><small style="color:var(--tx3);font-size:.75rem">Powered by Anthropic · Samuel's Build</small></div>
         </div>
       </div>
-
-      <div class="ai-input-row">
-        <textarea class="ai-textarea" id="ai-input" rows="1"
-          placeholder="Ask me anything..."
+      <div class="airow">
+        <textarea class="aita" id="aiinp" rows="1" placeholder="Ask me anything..."
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI()}"
-          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
-        <button class="btn-neon" onclick="sendAI()" id="ai-send-btn"><span>↑ SEND</span></button>
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,105)+'px'"></textarea>
+        <button class="btn bp" onclick="sendAI()">↑ Send</button>
       </div>
-      <div class="ai-notice">AI responses are powered by Anthropic Claude API · Enter key sends · Shift+Enter for new line</div>
+      <div class="ainote">Enter = send · Shift+Enter = new line · Stars OS by Samuel</div>
     </div>
 
-    <!-- ══ PROXY PANEL ══ -->
-    <div class="panel" id="panel-proxy" style="display:flex;flex-direction:column;gap:18px;">
-      <div class="section-header">
-        🌐 PROXY BROWSER
-        <span class="section-tag">ANONYMOUS</span>
+    <!-- PROXY -->
+    <div class="panel" id="pxp">
+      <div class="stitle"><span class="sti">🌐</span>Proxy Browser<span class="sttag">Anonymous</span></div>
+      <div class="pxbar">
+        <input class="pxin" type="text" id="pxurl" placeholder="🔒  https://example.com"/>
+        <button class="btn bp" onclick="launchPx()">▶ Go</button>
       </div>
-
-      <div class="proxy-url-bar">
-        <input class="proxy-input" type="text" id="proxy-url" placeholder="🔒  Enter URL — e.g. https://example.com" />
-        <button class="btn-neon" onclick="launchProxy()"><span>▶ GO</span></button>
+      <div class="pxg">
+        <div class="pxo" onclick="spx('Ultraviolet')"><div class="pxi">🔵</div><div class="pxn">ULTRAVIOLET</div><div class="pxs">● Backend Required</div></div>
+        <div class="pxo" onclick="spx('Rammerhead')"><div class="pxi">🔴</div><div class="pxn">RAMMERHEAD</div><div class="pxs">● Backend Required</div></div>
+        <div class="pxo" onclick="spx('Corrosion')"><div class="pxi">🟣</div><div class="pxn">CORROSION</div><div class="pxs">● Backend Required</div></div>
+        <div class="pxo" onclick="spx('Bare')"><div class="pxi">⚪</div><div class="pxn">BARE SERVER</div><div class="pxs">● Backend Required</div></div>
       </div>
-
-      <!-- Proxy service options -->
-      <div class="section-header" style="font-size:0.85rem; margin-bottom:10px">
-        SERVICE PROVIDERS
-      </div>
-      <div class="proxy-options">
-        <div class="proxy-opt-card" onclick="selectProxy('ultraviolet')">
-          <div class="proxy-opt-icon">🔵</div>
-          <div class="proxy-opt-name">ULTRAVIOLET</div>
-          <div class="proxy-opt-status status-beta">● REQUIRES BACKEND</div>
-        </div>
-        <div class="proxy-opt-card" onclick="selectProxy('rammerhead')">
-          <div class="proxy-opt-icon">🔴</div>
-          <div class="proxy-opt-name">RAMMERHEAD</div>
-          <div class="proxy-opt-status status-beta">● REQUIRES BACKEND</div>
-        </div>
-        <div class="proxy-opt-card" onclick="selectProxy('corrosion')">
-          <div class="proxy-opt-icon">🟣</div>
-          <div class="proxy-opt-name">CORROSION</div>
-          <div class="proxy-opt-status status-soon">● REQUIRES BACKEND</div>
-        </div>
-        <div class="proxy-opt-card" onclick="selectProxy('bare')">
-          <div class="proxy-opt-icon">⚪</div>
-          <div class="proxy-opt-name">BARE SERVER</div>
-          <div class="proxy-opt-status status-soon">● REQUIRES BACKEND</div>
-        </div>
-      </div>
-
-      <!-- Iframe placeholder -->
-      <div class="glass-card proxy-frame-wrap" style="min-height:280px;flex:1;position:relative;padding:0;">
-        <div class="proxy-placeholder" id="proxy-placeholder">
-          <div class="ph-icon">🌐</div>
-          <h3>PROXY BROWSER</h3>
-          <p>
-            Full proxy functionality requires a backend server (Node.js/Deno) running Ultraviolet, Rammerhead, or a similar service worker proxy. Enter a URL above and deploy a compatible backend to enable anonymous browsing.
-          </p>
-          <button class="btn-neon" onclick="toast('Deploy a backend proxy service to enable this feature.', '⚙️')">
-            <span>📦 DEPLOY GUIDE</span>
-          </button>
-        </div>
-        <iframe id="proxy-iframe" src="about:blank" style="display:none;width:100%;height:100%;border:none;border-radius:var(--radius-lg)"></iframe>
+      <div class="pxph card">
+        <div class="phi">🌐</div><h3>PROXY BROWSER</h3>
+        <p>Full proxy requires a Node.js backend running Ultraviolet or similar. Deploy a server, connect it here.</p>
+        <button class="btn bp" onclick="toast('Deploy a compatible backend proxy to enable this feature.','⚙️')">📦 Deployment Info</button>
       </div>
     </div>
 
-    <!-- ══ THEME / CUSTOMIZATION ══ -->
-    <div class="panel" id="panel-theme">
-      <div class="section-header" style="grid-column:1/-1">
-        🎨 CUSTOMIZATION
-        <span class="section-tag">LIVE PREVIEW</span>
-      </div>
-
-      <!-- Presets -->
-      <div class="glass-card">
-        <span class="theme-label">Theme Presets</span>
-        <div class="theme-presets">
-          <div class="preset-chip active" onclick="applyPreset('nebula',this)">🌌 Nebula Blue</div>
-          <div class="preset-chip" onclick="applyPreset('crimson',this)">🔴 Crimson Fire</div>
-          <div class="preset-chip" onclick="applyPreset('matrix',this)">💚 Matrix</div>
-          <div class="preset-chip" onclick="applyPreset('aurora',this)">🌈 Aurora</div>
-          <div class="preset-chip" onclick="applyPreset('void',this)">🖤 Void Purple</div>
-          <div class="preset-chip" onclick="applyPreset('solar',this)">☀️ Solar Gold</div>
+    <!-- THEME -->
+    <div class="panel" id="pth">
+      <div class="stitle" style="grid-column:1/-1"><span class="sti">🎨</span>Customization<span class="sttag">Live</span></div>
+      <div class="card">
+        <span class="thl">Presets</span>
+        <div class="prow">
+          <div class="pch on" onclick="applyP('nebula',this)">🌌 Nebula</div>
+          <div class="pch" onclick="applyP('crimson',this)">🔴 Crimson</div>
+          <div class="pch" onclick="applyP('matrix',this)">💚 Matrix</div>
+          <div class="pch" onclick="applyP('aurora',this)">🌈 Aurora</div>
+          <div class="pch" onclick="applyP('void',this)">🖤 Void</div>
+          <div class="pch" onclick="applyP('gold',this)">☀️ Gold</div>
         </div>
       </div>
-
-      <!-- Color controls -->
-      <div class="glass-card">
-        <span class="theme-label">Accent Color</span>
-        <div class="theme-row">
-          <div class="color-row">
-            <div class="color-swatch" id="swatch-accent"
-              style="background:var(--clr-accent)"
-              onclick="document.getElementById('pick-accent').click()"></div>
-            <span class="color-name" id="label-accent">#00b4ff</span>
-            <input type="color" id="pick-accent" value="#00b4ff"
-              oninput="setAccent(this.value)" />
-          </div>
-          <div class="color-row">
-            <div class="color-swatch" id="swatch-accent2"
-              style="background:var(--clr-accent2)"
-              onclick="document.getElementById('pick-accent2').click()"></div>
-            <span class="color-name" id="label-accent2">#7b2fff — Secondary</span>
-            <input type="color" id="pick-accent2" value="#7b2fff"
-              oninput="setAccent2(this.value)" />
-          </div>
-        </div>
+      <div class="card">
+        <span class="thl">Accent Colors</span>
+        <div class="crow"><div class="csw" id="sw1" style="background:#52b2ff" onclick="document.getElementById('cp1').click()"></div>
+          <span class="cnm" id="cn1">#52b2ff — Primary</span><input type="color" id="cp1" value="#52b2ff" oninput="setA1(this.value)"/></div>
+        <div class="crow"><div class="csw" id="sw2" style="background:#9b5fff" onclick="document.getElementById('cp2').click()"></div>
+          <span class="cnm" id="cn2">#9b5fff — Violet</span><input type="color" id="cp2" value="#9b5fff" oninput="setA2(this.value)"/></div>
       </div>
-
-      <!-- Glow + blur sliders -->
-      <div class="glass-card">
-        <span class="theme-label">Glow Intensity</span>
-        <input type="range" class="themed-range" id="glow-slider"
-          min="0" max="2" step="0.05" value="1"
-          oninput="setGlow(this.value)" />
-        <div style="display:flex;justify-content:space-between;margin-top:4px">
-          <span style="font-size:0.7rem;color:var(--clr-text-dim)">None</span>
-          <span style="font-size:0.7rem;color:var(--clr-text-dim)">Maximum</span>
-        </div>
-
-        <span class="theme-label" style="margin-top:16px">Glass Blur</span>
-        <input type="range" class="themed-range" id="blur-slider"
-          min="4" max="40" step="1" value="18"
-          oninput="setBlur(this.value)" />
-        <div style="display:flex;justify-content:space-between;margin-top:4px">
-          <span style="font-size:0.7rem;color:var(--clr-text-dim)">Minimal</span>
-          <span style="font-size:0.7rem;color:var(--clr-text-dim)">Heavy Blur</span>
-        </div>
+      <div class="card">
+        <span class="thl">Glow Intensity</span>
+        <input type="range" class="rng" min="0" max="2" step="0.05" value="1" oninput="setGlow(this.value)"/>
+        <div class="rrow"><span>None</span><span>Max</span></div>
+        <span class="thl" style="margin-top:14px">Glass Blur</span>
+        <input type="range" class="rng" min="4" max="40" step="1" value="22" oninput="setBlur(this.value)"/>
+        <div class="rrow"><span>Sharp</span><span>Heavy</span></div>
       </div>
-
-      <!-- Toggles -->
-      <div class="glass-card">
-        <span class="theme-label">Visual Effects</span>
-        <div class="toggle-row">
-          <span class="toggle-label">🌧 Rain Effect</span>
-          <div class="toggle on" id="tog-rain" onclick="toggleEffect('rain',this)"></div>
-        </div>
-        <div class="toggle-row">
-          <span class="toggle-label">🪐 3D Planet</span>
-          <div class="toggle on" id="tog-planet" onclick="toggleEffect('planet',this)"></div>
-        </div>
-        <div class="toggle-row">
-          <span class="toggle-label">✨ Floating Particles</span>
-          <div class="toggle on" id="tog-particles" onclick="toggleEffect('particles',this)"></div>
-        </div>
-        <div class="toggle-row">
-          <span class="toggle-label">💫 Hover Glow Cards</span>
-          <div class="toggle on" id="tog-cards" onclick="toggleEffect('cards',this)"></div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ══ CLOAKER PANEL ══ -->
-    <div class="panel" id="panel-cloaker" style="display:flex;flex-direction:column;gap:18px;">
-      <div class="section-header">
-        🎭 TAB CLOAKER
-        <span class="section-tag">STEALTH MODE</span>
-      </div>
-
-      <div class="glass-card" style="background:rgba(255,45,120,0.06);border-color:rgba(255,45,120,0.2)">
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <span style="font-size:1.3rem">⚠️</span>
-          <p style="font-size:0.87rem;color:rgba(255,160,160,0.8);line-height:1.6">
-            Tab Cloaker changes your browser tab title and favicon to disguise this page.
-            This is a client-side feature only. Click a preset or set a custom disguise.
-          </p>
-        </div>
-      </div>
-
-      <div>
-        <div class="section-header" style="font-size:0.85rem;margin-bottom:14px">PRESET DISGUISES</div>
-        <div class="cloak-grid" id="cloak-grid">
-          <!-- Populated via JS -->
-        </div>
-      </div>
-
-      <div class="glass-card">
-        <span class="theme-label">Custom Disguise</span>
-        <div class="cloak-custom-row" style="margin-bottom:10px">
-          <input class="cloak-input" id="cloak-title-input" type="text" placeholder="Custom tab title..." />
-        </div>
-        <div class="cloak-custom-row">
-          <input class="cloak-input" id="cloak-icon-input" type="text" placeholder="Favicon URL (optional)..." />
-          <button class="btn-neon" onclick="applyCustomCloak()"><span>▶ APPLY</span></button>
-        </div>
-      </div>
-
-      <div class="glass-card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-        <div>
-          <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px">Cloaker Status</div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.8rem;color:var(--clr-text-dim)">
-            Active disguise: <span id="cloak-status-text" style="color:var(--clr-accent)">None (Stars OS)</span>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn-neon btn-neon-danger" onclick="resetCloak()"><span>↺ RESET</span></button>
-        </div>
+      <div class="card">
+        <span class="thl">Visual FX</span>
+        <div class="tgrow"><span class="tgl">🌧 Rain Effect</span><div class="tg on" id="tgr" onclick="tfx('rain',this)"></div></div>
+        <div class="tgrow"><span class="tgl">🪐 3D Planet</span><div class="tg on" id="tgp" onclick="tfx('planet',this)"></div></div>
+        <div class="tgrow"><span class="tgl">✨ Particles</span><div class="tg on" id="tgpt" onclick="tfx('pts',this)"></div></div>
+        <div class="tgrow"><span class="tgl">📺 Scanlines</span><div class="tg on" id="tgsc" onclick="tfx('scan',this)"></div></div>
       </div>
     </div>
 
-  </div><!-- /main-area -->
-</div><!-- /desktop -->
+    <!-- CLOAKER -->
+    <div class="panel" id="pclk">
+      <div class="stitle"><span class="sti">🎭</span>Tab Cloaker<span class="sttag">Stealth</span></div>
+      <div class="wbox"><span style="font-size:1.15rem">⚠️</span>
+        <p>Changes your browser tab title and favicon instantly to disguise this page. Client-side only.</p></div>
+      <div class="stitle" style="font-size:.83rem;margin-bottom:11px"><span class="sti" style="width:24px;height:24px;font-size:.7rem">🎭</span>Presets</div>
+      <div class="cgrid" id="cgrid"></div>
+      <div class="card clcust">
+        <span class="thl">Custom Disguise</span>
+        <input class="clin" id="cltitle" type="text" placeholder="Custom tab title..."/>
+        <div class="clrow">
+          <input class="clin" id="clicon" type="text" placeholder="Favicon URL (optional)..." style="flex:1"/>
+          <button class="btn bp" onclick="custCloak()">▶ Apply</button>
+        </div>
+      </div>
+      <div class="card csc">
+        <div class="csi"><h4>Cloaker Status</h4><p>Active: <span id="cst">None (Stars OS)</span></p></div>
+        <button class="btn br3" onclick="resetCloak()">↺ Reset</button>
+      </div>
+    </div>
 
-<!-- ══════════════════════════════════════════════
-     SCRIPTS
-══════════════════════════════════════════════════ -->
+    <!-- CREDITS -->
+    <div class="panel" id="pcr">
+      <div class="crstar">⋆</div>
+      <div class="crname">Samuel's OS</div>
+      <div class="crtag">exclusive build · not for redistribution</div>
+      <div class="card crcard">
+        <div class="crrow"><span class="ck">Creator</span><span class="cv">Samuel</span></div>
+        <div class="crrow"><span class="ck">Build</span><span class="cv">Stars OS v2.0</span></div>
+        <div class="crrow"><span class="ck">Access</span><span class="cv">Samuel's Only ★</span></div>
+        <div class="crrow"><span class="ck">3D Engine</span><span class="cv">Three.js r128</span></div>
+        <div class="crrow"><span class="ck">AI</span><span class="cv">Anthropic Claude</span></div>
+        <div class="crrow"><span class="ck">Fonts</span><span class="cv">Syne · DM Sans · JetBrains Mono</span></div>
+        <div class="crrow"><span class="ck">Games</span><span class="cv">16 titles · 6 categories</span></div>
+        <div class="crrow"><span class="ck">License</span><span class="cv">Private — Samuel Only</span></div>
+      </div>
+      <p style="color:var(--tx3);font-size:.78rem;max-width:340px;line-height:1.75;text-align:center;font-weight:300">
+        Built exclusively for Samuel. A premium single-file browser operating system with 3D visuals, AI, and a full game library.
+      </p>
+    </div>
+  </div>
+</div>
 
-<!-- Three.js CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<!-- GSAP CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
 <script>
-/* ══════════════════════════════════════════════
-   STARS OS — Main Script
-   ══════════════════════════════════════════════ */
+/* ═══════════════════════════════════
+   STARS OS v2 · by Samuel
+═══════════════════════════════════ */
+let FX={rain:true,planet:true,pts:true,scan:true};
+let apiKey='',chatH=[],sessionT=Date.now(),activeCat='all';
 
-// ── STATE ──────────────────────────────────────
-let currentPanel = 'home';
-let currentCategory = 'all';
-let cloakActive = false;
-let cloakPreset = null;
-let apiKey = '';
-let chatHistory = [];
-let sessionStart = Date.now();
-let effectsState = { rain: true, planet: true, particles: true, cards: true };
-
-// ══════════════════════════════════════════════
-// THREE.JS — 3D PLANET + STAR FIELD
-// ══════════════════════════════════════════════
-(function initThreeJS() {
-  const canvas  = document.getElementById('bg-canvas');
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x020814, 1);
-
-  const scene  = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 0, 4.5);
-
-  // ── STAR FIELD ──
-  const starGeo = new THREE.BufferGeometry();
-  const starCount = 3000;
-  const starPos = new Float32Array(starCount * 3);
-  for (let i = 0; i < starCount * 3; i++) {
-    starPos[i] = (Math.random() - 0.5) * 200;
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-  const starMat = new THREE.PointsMaterial({
-    color: 0xaaccff,
-    size: 0.08,
-    transparent: true,
-    opacity: 0.7
+/* THREE.JS */
+(function(){
+  const c=document.getElementById('bgc');
+  const R=new THREE.WebGLRenderer({canvas:c,antialias:true});
+  R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);
+  R.setClearColor(0x04091a,1);
+  const S=new THREE.Scene();
+  const C=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,500);
+  C.position.set(0,0,5);
+  // stars
+  const sg=new THREE.BufferGeometry();const sp=new Float32Array(4200*3);
+  for(let i=0;i<sp.length;i++)sp[i]=(Math.random()-.5)*220;
+  sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+  S.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x88bbff,size:.065,transparent:true,opacity:.62})));
+  // planet shader
+  const pM=new THREE.ShaderMaterial({
+    uniforms:{uT:{value:0},uC1:{value:new THREE.Color(0x081030)},uC2:{value:new THREE.Color(0x001c50)},uC3:{value:new THREE.Color(0x52b2ff)}},
+    vertexShader:`varying vec2 vUv;varying vec3 vN,vP;void main(){vUv=uv;vN=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+    fragmentShader:`uniform float uT;uniform vec3 uC1,uC2,uC3;varying vec2 vUv;varying vec3 vN,vP;
+    float h(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5);}
+    float sn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+    return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),
+    mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z);}
+    float fbm(vec3 p){float v=0.,a=.5;for(int i=0;i<6;i++){v+=a*sn(p);p*=2.1;a*=.5;}return v;}
+    void main(){vec3 p=vP*1.9+vec3(uT*.034,0.,0.);float n=fbm(p),n2=fbm(p*2.3+vec3(5.));
+    vec3 col=mix(uC1,uC2,n);col=mix(col,uC3,n2*.3);
+    vec3 vd=normalize(cameraPosition-vP);float rim=pow(1.-max(dot(vN,vd),0.),2.5);col+=vec3(0.,.35,1.)*rim*.7;
+    float sh=smoothstep(.43,.57,n)*(.5+.5*sin(uT*1.8+vUv.x*18.));col+=vec3(0.,.5,1.)*sh*.1;gl_FragColor=vec4(col,1.);}`,
   });
-  scene.add(new THREE.Points(starGeo, starMat));
-
-  // ── PLANET ──
-  const planetGeo = new THREE.SphereGeometry(1.6, 64, 64);
-
-  // Procedural planet shader
-  const planetMat = new THREE.ShaderMaterial({
-    uniforms: {
-      uTime:   { value: 0 },
-      uColor1: { value: new THREE.Color(0x0a1640) },
-      uColor2: { value: new THREE.Color(0x003060) },
-      uColor3: { value: new THREE.Color(0x00b4ff) },
-    },
-    vertexShader: `
-      varying vec2 vUv;
-      varying vec3 vNormal;
-      varying vec3 vPosition;
-      void main() {
-        vUv = uv;
-        vNormal = normalize(normalMatrix * normal);
-        vPosition = position;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform float uTime;
-      uniform vec3 uColor1;
-      uniform vec3 uColor2;
-      uniform vec3 uColor3;
-      varying vec2 vUv;
-      varying vec3 vNormal;
-      varying vec3 vPosition;
-
-      float noise(vec3 p) {
-        return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
-      }
-      float smoothNoise(vec3 p) {
-        vec3 i = floor(p); vec3 f = fract(p);
-        f = f*f*(3.0-2.0*f);
-        return mix(
-          mix(mix(noise(i),noise(i+vec3(1,0,0)),f.x),
-              mix(noise(i+vec3(0,1,0)),noise(i+vec3(1,1,0)),f.x),f.y),
-          mix(mix(noise(i+vec3(0,0,1)),noise(i+vec3(1,0,1)),f.x),
-              mix(noise(i+vec3(0,1,1)),noise(i+vec3(1,1,1)),f.x),f.y),f.z
-        );
-      }
-      float fbm(vec3 p) {
-        float v = 0.0; float a = 0.5;
-        for(int i=0;i<5;i++){ v+=a*smoothNoise(p); p*=2.1; a*=0.5; }
-        return v;
-      }
-
-      void main() {
-        vec3 p = vPosition * 1.8 + vec3(uTime * 0.04, 0.0, 0.0);
-        float n = fbm(p);
-        float n2 = fbm(p * 2.2 + vec3(4.0));
-
-        vec3 col = mix(uColor1, uColor2, n);
-        col = mix(col, uColor3, n2 * 0.35);
-
-        // Atmospheric rim
-        vec3 viewDir = normalize(cameraPosition - vPosition);
-        float rim = 1.0 - max(dot(vNormal, viewDir), 0.0);
-        rim = pow(rim, 2.5);
-        col += vec3(0.0, 0.4, 1.0) * rim * 0.6;
-
-        // Ocean shimmer
-        float shimmer = smoothstep(0.45, 0.55, n) * (0.5 + 0.5 * sin(uTime * 2.0 + vUv.x * 20.0));
-        col += vec3(0.0, 0.6, 1.0) * shimmer * 0.12;
-
-        gl_FragColor = vec4(col, 1.0);
-      }
-    `
+  const planet=new THREE.Mesh(new THREE.SphereGeometry(1.7,80,80),pM);
+  planet.position.set(2.,-0.3,0);S.add(planet);
+  // atmosphere
+  const aM=new THREE.ShaderMaterial({
+    uniforms:{uC:{value:new THREE.Color(0x52b2ff)}},
+    vertexShader:`varying vec3 vN;void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+    fragmentShader:`uniform vec3 uC;varying vec3 vN;void main(){float r=pow(1.-max(dot(vN,normalize(cameraPosition-vec3(0.))),0.),3.);gl_FragColor=vec4(uC,r*.52);}`,
+    transparent:true,side:THREE.FrontSide,blending:THREE.AdditiveBlending,depthWrite:false
   });
-
-  const planet = new THREE.Mesh(planetGeo, planetMat);
-  planet.position.set(2.2, -0.4, 0);
-  scene.add(planet);
-
-  // ── ATMOSPHERE GLOW ──
-  const atmGeo = new THREE.SphereGeometry(1.75, 64, 64);
-  const atmMat = new THREE.ShaderMaterial({
-    uniforms: { uColor: { value: new THREE.Color(0x00b4ff) } },
-    vertexShader: `
-      varying vec3 vNormal;
-      void main() {
-        vNormal = normalize(normalMatrix * normal);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 uColor;
-      varying vec3 vNormal;
-      void main() {
-        vec3 viewDir = normalize(cameraPosition - vec3(0.0));
-        float rim = 1.0 - max(dot(vNormal, viewDir), 0.0);
-        rim = pow(rim, 3.0);
-        gl_FragColor = vec4(uColor, rim * 0.5);
-      }
-    `,
-    transparent: true,
-    side: THREE.FrontSide,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
+  S.add(new THREE.Mesh(new THREE.SphereGeometry(1.88,64,64),aM));
+  // rings
+  const rM=new THREE.ShaderMaterial({
+    uniforms:{uT:{value:0}},
+    vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+    fragmentShader:`uniform float uT;varying vec2 vUv;void main(){float r=length(vUv-.5)*2.;float a=smoothstep(.98,1.,r)+(1.-smoothstep(0.,.02,r));float s=.5+.5*sin(vUv.x*55.+uT);gl_FragColor=vec4(0.,.55,1.,(1.-a)*.26*s);}`,
+    transparent:true,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false
   });
-  scene.add(new THREE.Mesh(atmGeo, atmMat));
-
-  // ── RINGS ──
-  const ringGeo = new THREE.RingGeometry(2.0, 2.8, 128);
-  const ringMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 } },
-    vertexShader: `
-      varying vec2 vUv;
-      void main() { vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }
-    `,
-    fragmentShader: `
-      varying vec2 vUv;
-      uniform float uTime;
-      void main() {
-        float r = length(vUv - 0.5) * 2.0;
-        float a = smoothstep(0.98,1.0,r) + (1.0-smoothstep(0.0,0.02,r));
-        float shimmer = 0.5 + 0.5*sin(vUv.x*60.0 + uTime);
-        gl_FragColor = vec4(0.0, 0.6, 1.0, (1.0-a) * 0.3 * shimmer);
-      }
-    `,
-    transparent: true,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI * 0.35;
-  ring.position.copy(planet.position);
-  scene.add(ring);
-
-  // ── NEBULA CLOUD ──
-  const nebGeo = new THREE.BufferGeometry();
-  const nebCount = 800;
-  const nebPos = new Float32Array(nebCount * 3);
-  const nebCol = new Float32Array(nebCount * 3);
-  for (let i = 0; i < nebCount; i++) {
-    const theta = Math.random() * Math.PI * 2;
-    const phi   = Math.acos(2 * Math.random() - 1);
-    const r     = 6 + Math.random() * 8;
-    nebPos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
-    nebPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-    nebPos[i*3+2] = r * Math.cos(phi);
-    const t = Math.random();
-    nebCol[i*3]   = t < 0.33 ? 0.0 : t < 0.66 ? 0.48 : 1.0;
-    nebCol[i*3+1] = t < 0.33 ? 0.7 : t < 0.66 ? 0.18 : 0.18;
-    nebCol[i*3+2] = t < 0.33 ? 1.0 : t < 0.66 ? 1.0  : 0.47;
-  }
-  nebGeo.setAttribute('position', new THREE.BufferAttribute(nebPos, 3));
-  nebGeo.setAttribute('color',    new THREE.BufferAttribute(nebCol, 3));
-  const nebMat = new THREE.PointsMaterial({ size: 0.25, vertexColors: true, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false });
-  scene.add(new THREE.Points(nebGeo, nebMat));
-
-  // ── ANIMATION LOOP ──
-  let t = 0;
-  function animate() {
-    requestAnimationFrame(animate);
-    t += 0.008;
-    planetMat.uniforms.uTime.value = t;
-    ringMat.uniforms.uTime.value   = t;
-    planet.rotation.y = t * 0.12;
-    ring.rotation.z   = t * 0.04;
-    camera.position.x = Math.sin(t * 0.05) * 0.3;
-    camera.position.y = Math.cos(t * 0.07) * 0.15;
-    camera.lookAt(scene.position);
-    renderer.render(scene, camera);
-  }
-  animate();
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
-
-  // Expose toggle
-  window._threeScene = { renderer, planet, ring };
+  const ring=new THREE.Mesh(new THREE.RingGeometry(2.1,3.,128),rM);
+  ring.rotation.x=Math.PI*.32;ring.position.copy(planet.position);S.add(ring);
+  let t=0;
+  function anim(){requestAnimationFrame(anim);
+    if(!FX.planet)return;t+=.007;
+    pM.uniforms.uT.value=t;rM.uniforms.uT.value=t;
+    planet.rotation.y=t*.1;ring.rotation.z=t*.03;
+    C.position.x=Math.sin(t*.04)*.22;C.position.y=Math.cos(t*.06)*.11;
+    C.lookAt(S.position);R.render(S,C);}
+  anim();
+  window.addEventListener('resize',()=>{C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
 })();
 
-// ══════════════════════════════════════════════
-// RAIN EFFECT
-// ══════════════════════════════════════════════
-(function initRain() {
-  const canvas = document.getElementById('rain-canvas');
-  const ctx    = canvas.getContext('2d');
-  let drops = [];
-
-  function resize() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-    drops = Array.from({ length: 140 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      len: 10 + Math.random() * 20,
-      speed: 6 + Math.random() * 10,
-      opacity: 0.2 + Math.random() * 0.5
-    }));
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  function drawRain() {
-    if (!effectsState.rain) { requestAnimationFrame(drawRain); return; }
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = 'rgba(100,200,255,1)';
-    ctx.lineWidth = 0.8;
-    drops.forEach(d => {
-      ctx.globalAlpha = d.opacity;
-      ctx.beginPath();
-      ctx.moveTo(d.x, d.y);
-      ctx.lineTo(d.x - 1, d.y + d.len);
-      ctx.stroke();
-      d.y += d.speed;
-      if (d.y > canvas.height) {
-        d.y = -d.len;
-        d.x = Math.random() * canvas.width;
-      }
-    });
-    requestAnimationFrame(drawRain);
-  }
-  drawRain();
+/* RAIN */
+(function(){
+  const c=document.getElementById('rc'),ctx=c.getContext('2d');let D=[];
+  function rsz(){c.width=innerWidth;c.height=innerHeight;
+    D=Array.from({length:155},()=>({x:Math.random()*c.width,y:Math.random()*c.height,l:8+Math.random()*18,s:5+Math.random()*9,o:.12+Math.random()*.42}));}
+  rsz();window.addEventListener('resize',rsz);
+  function draw(){if(!FX.rain){ctx.clearRect(0,0,c.width,c.height);requestAnimationFrame(draw);return;}
+    ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle='rgba(100,200,255,1)';ctx.lineWidth=.55;
+    D.forEach(d=>{ctx.globalAlpha=d.o;ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-.7,d.y+d.l);ctx.stroke();
+      d.y+=d.s;if(d.y>c.height){d.y=-d.l;d.x=Math.random()*c.width;}});requestAnimationFrame(draw);}
+  draw();
 })();
 
-// ══════════════════════════════════════════════
-// AMBIENT FLOATING PARTICLES
-// ══════════════════════════════════════════════
-function spawnParticle() {
-  if (!effectsState.particles) return;
-  const dot = document.createElement('div');
-  dot.className = 'ambient-dot';
-  dot.style.left = Math.random() * 100 + 'vw';
-  dot.style.bottom = '0';
-  dot.style.animationDuration = (4 + Math.random() * 6) + 's';
-  dot.style.animationDelay = (Math.random() * 2) + 's';
-  document.body.appendChild(dot);
-  setTimeout(() => dot.remove(), 10000);
-}
-setInterval(spawnParticle, 600);
+/* PARTICLES */
+setInterval(()=>{if(!FX.pts)return;
+  const d=document.createElement('div');d.className='adot';
+  d.style.left=Math.random()*100+'vw';d.style.bottom='0';
+  d.style.animationDuration=(5+Math.random()*7)+'s';
+  document.body.appendChild(d);setTimeout(()=>d.remove(),12000);},720);
 
-// ══════════════════════════════════════════════
-// CLOCK
-// ══════════════════════════════════════════════
-function updateClock() {
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2, '0');
-  const m = String(now.getMinutes()).padStart(2, '0');
-  const s = String(now.getSeconds()).padStart(2, '0');
-  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+/* CLOCK */
+setInterval(()=>{
+  const n=new Date(),f=v=>String(v).padStart(2,'0');
+  document.getElementById('clk').textContent=`${f(n.getHours())}:${f(n.getMinutes())}:${f(n.getSeconds())}`;
+  const e=Math.floor((Date.now()-sessionT)/1000);
+  const se=document.getElementById('shs');if(se)se.textContent=`${f(Math.floor(e/60))}:${f(e%60)}`;
+},1000);
 
-  const elapsed = Math.floor((Date.now() - sessionStart) / 1000);
-  const em = String(Math.floor(elapsed / 60)).padStart(2, '0');
-  const es = String(elapsed % 60).padStart(2, '0');
-  const se = document.getElementById('stat-session');
-  if (se) se.textContent = `${em}:${es}`;
-}
-setInterval(updateClock, 1000);
-updateClock();
+/* LOADER */
+const LSTEPS=['Loading Three.js…','Building star field…','Compiling shaders…','Init rain…','Mounting games…','Connecting AI…','Applying theme…','Ready — Welcome, Samuel.'];
+(function boot(){
+  const els=['lp','ll','lc','ls','lsv'].map(id=>document.getElementById(id));
+  setTimeout(()=>els.forEach(e=>e&&e.classList.add('v')),140);
+  setTimeout(()=>document.getElementById('lb').style.width='100%',260);
+  LSTEPS.forEach((s,i)=>setTimeout(()=>document.getElementById('lsv').textContent=s,280+i*300));
+  setTimeout(()=>{
+    const L=document.getElementById('loader');L.style.transition='opacity .8s ease';L.style.opacity='0';
+    setTimeout(()=>{L.style.display='none';document.getElementById('desktop').classList.add('on');
+      buildGames();buildCloaks();},800);
+  },2900);
+})();
 
-// ══════════════════════════════════════════════
-// LOADING SEQUENCE
-// ══════════════════════════════════════════════
-const bootSteps = [
-  'Loading Three.js engine...',
-  'Initializing WebGL renderer...',
-  'Building star field geometry...',
-  'Compiling planet shaders...',
-  'Spawning rain particles...',
-  'Mounting game library...',
-  'Connecting AI interface...',
-  'Applying theme engine...',
-  'System ready.'
+/* NAVIGATION */
+function show(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));const p=document.getElementById('p'+id);if(p)p.classList.add('on');cdd();}
+function tdrop(ddId,niId){const dd=document.getElementById(ddId),btn=document.querySelector('#'+niId+' .nbtn'),was=dd.classList.contains('on');cdd();if(!was){dd.classList.add('on');btn&&btn.classList.add('open');}}
+function cdd(){document.querySelectorAll('.ndd').forEach(d=>d.classList.remove('on'));document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('open'));}
+document.addEventListener('click',e=>{if(!e.target.closest('.ni'))cdd();});
+
+/* ═══════════════════════════════════
+   GAMES — Add entries here!
+   Format: { name, cat, icon, url, color, stars }
+   Categories: action arcade puzzle card sport idle
+═══════════════════════════════════ */
+const GAMES=[
+  {name:'Basket Random',cat:'puzzle',icon:'🏀',url:'https://script.google.com/macros/s/AKfycbwiQgeRHVDP8wzJ_CeSE1LyaKCMu1qdlopwylhD4LdBvBVd2y36VjlWY0iyk38WH0JiJA/exec',color:'#ffa040',stars:'★★★★☆'},
 ];
+/* ─── To add a game, paste a new line above this comment:
+   {name:'Game Name', cat:'arcade', icon:'🎮', url:'https://game-url.com', color:'#hex', stars:'★★★★☆'},
+─── */
 
-let stepIndex = 0;
-function runLoader() {
-  const logo = document.getElementById('loader-logo');
-  const tag  = document.getElementById('loader-tagline');
-  const bar  = document.getElementById('loader-bar');
-  const steps = document.getElementById('loader-steps');
+const catClass={action:'ta',arcade:'tc',puzzle:'tp',card:'tk',sport:'ts',idle:'ti'};
 
-  setTimeout(() => { logo.classList.add('show'); tag.classList.add('show'); }, 200);
-  setTimeout(() => { bar.style.width = '100%'; }, 400);
-
-  bootSteps.forEach((step, i) => {
-    setTimeout(() => {
-      steps.textContent = step;
-      stepIndex = i;
-    }, 300 + i * 280);
+function buildGames(){
+  const g=document.getElementById('ggrid');g.innerHTML='';
+  const list=activeCat==='all'?GAMES:GAMES.filter(x=>x.cat===activeCat);
+  list.forEach(gm=>{
+    const c=document.createElement('div');c.className='gc';
+    c.dataset.name=gm.name.toLowerCase();
+    c.innerHTML=`<div class="gthumb" style="background:linear-gradient(135deg,${gm.color}1e,${gm.color}40)">
+      <span>${gm.icon}</span><div class="gplay"><span>▶ PLAY</span></div></div>
+      <div class="gbody"><div class="gname">${gm.name}</div>
+      <div class="gfoot"><span class="gtag ${catClass[gm.cat]||'tc'}">${gm.cat}</span>
+      <span class="gstars">${gm.stars}</span></div></div>`;
+    c.onclick=()=>launchGame(gm);g.appendChild(c);
   });
-
-  setTimeout(() => {
-    const loader = document.getElementById('loader');
-    loader.style.transition = 'opacity 0.9s ease';
-    loader.style.opacity = '0';
-    setTimeout(() => {
-      loader.style.display = 'none';
-      const desktop = document.getElementById('desktop');
-      desktop.classList.add('active');
-      buildGameGrid();
-      buildCloakGrid();
-    }, 900);
-  }, 3200);
+  document.getElementById('shg').textContent=GAMES.length;
 }
-runLoader();
-
-// ══════════════════════════════════════════════
-// PANEL NAVIGATION
-// ══════════════════════════════════════════════
-function showPanel(id) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  const target = document.getElementById('panel-' + id);
-  if (target) {
-    target.classList.add('active');
-    currentPanel = id;
-  }
-  closeDropdowns();
+function fc(cat,el){activeCat=cat;document.querySelectorAll('.cat').forEach(c=>c.classList.remove('on'));if(el)el.classList.add('on');buildGames();}
+function fsearch(q){document.querySelectorAll('.gc').forEach(c=>c.style.display=c.dataset.name.includes(q.toLowerCase())?'':'none');}
+function launchGame(gm){
+  document.getElementById('gotitle').textContent='★ '+gm.name.toUpperCase();
+  document.getElementById('gif').src=gm.url;
+  document.getElementById('gol').classList.add('on');
+  toast('Launching '+gm.name,gm.icon);
 }
+function closeGame(){document.getElementById('gol').classList.remove('on');document.getElementById('gif').src='about:blank';}
 
-// ══════════════════════════════════════════════
-// DROPDOWN NAVIGATION
-// ══════════════════════════════════════════════
-function toggleDropdown(ddId, navId) {
-  const dd  = document.getElementById(ddId);
-  const btn = document.querySelector(`#${navId} .nav-btn`);
-  const isOpen = dd.classList.contains('open');
-  closeDropdowns();
-  if (!isOpen) {
-    dd.classList.add('open');
-    btn && btn.classList.add('open');
-  }
+/* AI */
+// ► Replace 'YOUR_API_KEY' with your Anthropic key, OR enter it in the UI.
+// ⚠️ Never commit real keys publicly!
+let USER_KEY='YOUR_API_KEY';
+function setKey(v){apiKey=v.trim();USER_KEY=apiKey;}
+async function sendAI(){
+  const inp=document.getElementById('aiinp'),msg=inp.value.trim();if(!msg)return;
+  const key=apiKey||USER_KEY;if(!key||key==='YOUR_API_KEY'){toast('Enter your API key!','🔑');return;}
+  inp.value='';inp.style.height='auto';
+  addMsg('u',msg);chatH.push({role:'user',content:msg});
+  const t=addMsg('b','⟳ Thinking…');
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-opus-4-5',max_tokens:1024,
+        system:"You are Stars AI, Samuel's exclusive AI assistant in Stars OS. Be sharp, concise, and slightly futuristic.",
+        messages:chatH})});
+    const d=await r.json();if(d.error)throw new Error(d.error.message);
+    const rep=d.content?.[0]?.text||'No response.';chatH.push({role:'assistant',content:rep});
+    t.querySelector('.bbl').textContent=rep;
+  }catch(e){t.querySelector('.bbl').innerHTML=`<span style="color:var(--a3)">Error: ${e.message}</span>`;}
+  const ch=document.getElementById('chat');ch.scrollTop=ch.scrollHeight;
 }
-
-function closeDropdowns() {
-  document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('open'));
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('.nav-item')) closeDropdowns();
-});
-
-// ══════════════════════════════════════════════
-// GAME DATA
-// ══════════════════════════════════════════════
-const GAMES = [
-  { id:1, name:'2048',         category:'puzzle', icon:'🟨', url:'https://play2048.co/',                  color:'#ffa040' },
-  { id:2, name:'Chess',        category:'card',   icon:'♟️', url:'https://www.chess.com/play/computer',   color:'#aaaaaa' },
-  { id:3, name:'Snake',        category:'arcade', icon:'🐍', url:'https://playsnake.org/',                color:'#00ff88' },
-  { id:4, name:'Tetris',       category:'arcade', icon:'🟦', url:'https://tetris.com/play-tetris',        color:'#00b4ff' },
-  { id:5, name:'Pac-Man',      category:'arcade', icon:'🟡', url:'https://www.google.com/logos/2010/pacman10-i.html', color:'#ffee00' },
-  { id:6, name:'Minesweeper',  category:'puzzle', icon:'💣', url:'https://minesweeper.online/',            color:'#7b2fff' },
-  { id:7, name:'Solitaire',    category:'card',   icon:'🃏', url:'https://solitaired.com/',               color:'#ff5e5e' },
-  { id:8, name:'Wordle',       category:'puzzle', icon:'📝', url:'https://www.nytimes.com/games/wordle',  color:'#6aaa64' },
-  { id:9, name:'Sudoku',       category:'puzzle', icon:'🔢', url:'https://www.websudoku.com/',            color:'#ff9500' },
-  { id:10,name:'Flappy Bird',  category:'action', icon:'🐦', url:'https://flappybird.io/',                color:'#ff2d78' },
-  { id:11,name:'Run 3',        category:'action', icon:'🏃', url:'https://www.coolmathgames.com/0-run-3', color:'#ff6b35' },
-  { id:12,name:'Spades',       category:'card',   icon:'♠️', url:'https://cardgames.io/spades/',          color:'#8888ff' },
-];
-
-// ── Build game grid ──
-function buildGameGrid() {
-  const grid = document.getElementById('games-grid');
-  grid.innerHTML = '';
-  const filtered = currentCategory === 'all'
-    ? GAMES
-    : GAMES.filter(g => g.category === currentCategory);
-
-  filtered.forEach(g => {
-    const card = document.createElement('div');
-    card.className = 'game-card';
-    card.dataset.category = g.category;
-    card.dataset.name = g.name.toLowerCase();
-    card.innerHTML = `
-      <div class="game-thumb" style="background:linear-gradient(135deg,${g.color}22,${g.color}44)">
-        <span style="font-size:2.8rem">${g.icon}</span>
-        <div class="game-thumb-overlay">▶ PLAY</div>
-      </div>
-      <div class="game-info">
-        <div class="game-name">${g.name}</div>
-        <div class="game-meta">
-          <span class="game-category game-cat-${g.category}">${g.category.toUpperCase()}</span>
-        </div>
-      </div>
-    `;
-    card.onclick = () => launchGame(g);
-    grid.appendChild(card);
-  });
-  document.getElementById('stat-games').textContent = GAMES.length;
+function addMsg(role,text){
+  const ch=document.getElementById('chat'),w=document.createElement('div');
+  w.className='msg'+(role==='u'?' u':'');
+  w.innerHTML=`<div class="av ${role==='u'?'ua':'b'}">${role==='u'?'◉':'★'}</div><div class="bbl">${text}</div>`;
+  ch.appendChild(w);ch.scrollTop=ch.scrollHeight;return w;
 }
 
-function filterCat(cat, el) {
-  currentCategory = cat;
-  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
-  if (el) el.classList.add('active');
-  buildGameGrid();
-}
+/* PROXY */
+function launchPx(){toast('Proxy backend required — see deployment guide','🌐');}
+function spx(n){toast(n+' selected — deploy a backend to activate','🔧');}
 
-function filterGames(query) {
-  const cards = document.querySelectorAll('.game-card');
-  cards.forEach(c => {
-    const match = c.dataset.name.includes(query.toLowerCase());
-    c.style.display = match ? '' : 'none';
-  });
-}
-
-// ── Launch game in overlay ──
-function launchGame(game) {
-  const overlay = document.getElementById('game-overlay');
-  const iframe  = document.getElementById('game-iframe');
-  const title   = document.getElementById('game-overlay-title');
-  title.textContent = '★ ' + game.name.toUpperCase();
-  iframe.src = game.url;
-  overlay.classList.add('open');
-  toast(`Launching ${game.name}...`, game.icon);
-}
-
-function closeGame() {
-  const overlay = document.getElementById('game-overlay');
-  overlay.classList.remove('open');
-  document.getElementById('game-iframe').src = 'about:blank';
-}
-
-// ══════════════════════════════════════════════
-// AI ASSISTANT
-// ══════════════════════════════════════════════
-
-// ► TO USE AI: Enter your Anthropic API key in the UI input,
-//   or replace 'YOUR_API_KEY' below with your actual key.
-//   ⚠️ NEVER commit real API keys to public repositories!
-let USER_API_KEY = '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'; // <-- placeholder only
-
-function updateApiKey(val) {
-  apiKey = val.trim();
-  USER_API_KEY = apiKey;
-}
-
-async function sendAI() {
-  const input = document.getElementById('ai-input');
-  const msg   = input.value.trim();
-  if (!msg) return;
-
-  const key = apiKey || USER_API_KEY;
-  if (!key || key === 'YOUR_API_KEY') {
-    toast('Please enter your API key first!', '🔑');
-    return;
-  }
-
-  input.value = '';
-  input.style.height = 'auto';
-  appendMsg('user', msg);
-  chatHistory.push({ role: 'user', content: msg });
-
-  const thinkingEl = appendMsg('bot', '⟳ Thinking...');
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-5',
-        max_tokens: 1024,
-        system: 'You are Stars AI, a helpful assistant embedded in Stars OS — a futuristic browser-based operating system. Be concise, friendly, and a bit futuristic in tone.',
-        messages: chatHistory
-      })
-    });
-
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-
-    const reply = data.content?.[0]?.text || 'No response.';
-    chatHistory.push({ role: 'assistant', content: reply });
-    thinkingEl.querySelector('.ai-bubble').textContent = reply;
-  } catch (err) {
-    thinkingEl.querySelector('.ai-bubble').innerHTML =
-      `<span style="color:var(--clr-accent3)">Error: ${err.message}</span>`;
-  }
-
-  const chat = document.getElementById('ai-chat');
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function appendMsg(role, text) {
-  const chat = document.getElementById('ai-chat');
-  const wrap = document.createElement('div');
-  wrap.className = `ai-msg ${role === 'user' ? 'user' : ''}`;
-  wrap.innerHTML = `
-    <div class="ai-avatar ${role === 'user' ? 'user-av' : 'bot'}">${role === 'user' ? '◉' : '★'}</div>
-    <div class="ai-bubble">${text}</div>
-  `;
-  chat.appendChild(wrap);
-  chat.scrollTop = chat.scrollHeight;
-  return wrap;
-}
-
-// ══════════════════════════════════════════════
-// PROXY
-// ══════════════════════════════════════════════
-function launchProxy() {
-  const url = document.getElementById('proxy-url').value.trim();
-  if (!url) { toast('Enter a URL first', '⚠️'); return; }
-  toast('Proxy backend required — see deployment guide', '🌐');
-}
-
-function selectProxy(name) {
-  toast(`${name.toUpperCase()} selected — backend required to activate`, '🔧');
-}
-
-// ══════════════════════════════════════════════
-// THEME ENGINE
-// ══════════════════════════════════════════════
-const PRESETS = {
-  nebula:  { accent: '#00b4ff', accent2: '#7b2fff', bg: '#020814', name: 'Nebula Blue' },
-  crimson: { accent: '#ff2d78', accent2: '#ff6b35', bg: '#140208', name: 'Crimson Fire' },
-  matrix:  { accent: '#00ff88', accent2: '#00cc55', bg: '#020f04', name: 'Matrix' },
-  aurora:  { accent: '#a0f0ff', accent2: '#ff80c0', bg: '#050d14', name: 'Aurora' },
-  void:    { accent: '#9b4dff', accent2: '#ff2d78', bg: '#08020f', name: 'Void Purple' },
-  solar:   { accent: '#ffa040', accent2: '#ff6020', bg: '#100800', name: 'Solar Gold' },
+/* THEME */
+const PRESETS={
+  nebula:{a1:'#52b2ff',a2:'#9b5fff',bg:'#04091a',n:'Nebula'},
+  crimson:{a1:'#ff4f8b',a2:'#ff6b35',bg:'#140209',n:'Crimson'},
+  matrix:{a1:'#00e5a0',a2:'#00c864',bg:'#020f05',n:'Matrix'},
+  aurora:{a1:'#a8f0ff',a2:'#ff80c0',bg:'#040d16',n:'Aurora'},
+  void:{a1:'#9b5fff',a2:'#ff4f8b',bg:'#08020e',n:'Void'},
+  gold:{a1:'#ffc555',a2:'#ff8c00',bg:'#100a02',n:'Gold'},
 };
+function applyP(k,el){const p=PRESETS[k];if(!p)return;
+  setA1(p.a1);setA2(p.a2);document.documentElement.style.setProperty('--ink',p.bg);
+  document.querySelectorAll('.pch').forEach(c=>c.classList.remove('on'));if(el)el.classList.add('on');
+  document.getElementById('sht').textContent=p.n;toast('Theme: '+p.n,'🎨');}
+function setA1(v){const r=document.documentElement;r.style.setProperty('--a1',v);
+  r.style.setProperty('--ga1',`0 0 12px ${v}88,0 0 40px ${v}2a`);
+  const s=document.getElementById('sw1');if(s)s.style.background=v;
+  const n=document.getElementById('cn1');if(n)n.textContent=v+' — Primary';
+  const p=document.getElementById('cp1');if(p)p.value=v;}
+function setA2(v){document.documentElement.style.setProperty('--a2',v);
+  const s=document.getElementById('sw2');if(s)s.style.background=v;
+  const n=document.getElementById('cn2');if(n)n.textContent=v+' — Violet';
+  const p=document.getElementById('cp2');if(p)p.value=v;}
+function setGlow(v){document.documentElement.style.setProperty('--glow',v);document.getElementById('shgl').textContent=Math.round(v*50)+'%';}
+function setBlur(v){document.documentElement.style.setProperty('--blur',v+'px');document.getElementById('shbl').textContent=v+'px';}
+function tfx(n,el){FX[n]=!FX[n];el.classList.toggle('on',FX[n]);
+  if(n==='rain')document.getElementById('rc').style.opacity=FX.rain?'.13':'0';
+  if(n==='planet')document.getElementById('bgc').style.opacity=FX.planet?'1':'0';
+  toast(n.charAt(0).toUpperCase()+n.slice(1)+': '+(FX[n]?'ON':'OFF'),'✨');}
 
-function applyPreset(key, el) {
-  const p = PRESETS[key];
-  if (!p) return;
-  setAccent(p.accent);
-  setAccent2(p.accent2);
-  document.documentElement.style.setProperty('--clr-bg', p.bg);
-  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
-  if (el) el.classList.add('active');
-  document.getElementById('stat-theme-name').textContent = p.name;
-  toast(`Theme: ${p.name}`, '🎨');
-}
-
-function setAccent(val) {
-  document.documentElement.style.setProperty('--clr-accent', val);
-  document.documentElement.style.setProperty('--glow-sm', `0 0 8px ${val}`);
-  document.documentElement.style.setProperty('--glow-md', `0 0 18px ${val}, 0 0 40px ${val}44`);
-  document.documentElement.style.setProperty('--glow-lg', `0 0 30px ${val}, 0 0 80px ${val}44`);
-  const swatch = document.getElementById('swatch-accent');
-  if (swatch) swatch.style.background = val;
-  const label = document.getElementById('label-accent');
-  if (label) label.textContent = val;
-  const picker = document.getElementById('pick-accent');
-  if (picker) picker.value = val;
-}
-
-function setAccent2(val) {
-  document.documentElement.style.setProperty('--clr-accent2', val);
-  const swatch = document.getElementById('swatch-accent2');
-  if (swatch) swatch.style.background = val;
-  const label = document.getElementById('label-accent2');
-  if (label) label.textContent = val + ' — Secondary';
-  const picker = document.getElementById('pick-accent2');
-  if (picker) picker.value = val;
-}
-
-function setGlow(val) {
-  document.documentElement.style.setProperty('--glow-intensity', val);
-  const pct = Math.round(val * 100 / 2);
-  document.getElementById('stat-glow').textContent = pct + '%';
-}
-
-function setBlur(val) {
-  document.documentElement.style.setProperty('--blur-glass', val + 'px');
-  document.getElementById('stat-blur').textContent = val + 'px';
-}
-
-function toggleEffect(name, el) {
-  effectsState[name] = !effectsState[name];
-  el.classList.toggle('on', effectsState[name]);
-  if (name === 'rain') {
-    document.getElementById('rain-canvas').style.opacity = effectsState.rain ? '0.18' : '0';
-  }
-  if (name === 'planet') {
-    document.getElementById('bg-canvas').style.opacity = effectsState.planet ? '1' : '0';
-  }
-  toast(`${name.charAt(0).toUpperCase()+name.slice(1)}: ${effectsState[name] ? 'ON' : 'OFF'}`, '✨');
-}
-
-// ══════════════════════════════════════════════
-// CLOAKER
-// ══════════════════════════════════════════════
-const CLOAK_PRESETS = [
-  { name: 'Google',       icon: '🔵', title: 'Google',       favicon: 'https://www.google.com/favicon.ico' },
-  { name: 'Gmail',        icon: '📧', title: 'Inbox (1) - Gmail', favicon: 'https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico' },
-  { name: 'YouTube',      icon: '▶️', title: 'YouTube',      favicon: 'https://www.youtube.com/favicon.ico' },
-  { name: 'Wikipedia',    icon: '📖', title: 'Wikipedia',    favicon: 'https://en.wikipedia.org/favicon.ico' },
-  { name: 'Duolingo',     icon: '🦜', title: 'Duolingo',     favicon: 'https://d35aaqx5ub95lt.cloudfront.net/favicon.ico' },
-  { name: 'Canvas',       icon: '🎓', title: 'Canvas LMS',   favicon: 'https://du11hjcvx0uqb.cloudfront.net/dist/images/favicon-e10d657a73.ico' },
-  { name: 'Khan Academy', icon: '📚', title: 'Khan Academy', favicon: 'https://www.khanacademy.org/favicon.ico' },
-  { name: 'Desmos',       icon: '📐', title: 'Desmos',       favicon: 'https://www.desmos.com/favicon.ico' },
+/* CLOAKER */
+const CLOAKS=[
+  {name:'Google',     icon:'🔵',title:'Google',              fav:'https://www.google.com/favicon.ico'},
+  {name:'Gmail',      icon:'📧',title:'Inbox (1) - Gmail',   fav:'https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico'},
+  {name:'YouTube',    icon:'▶️',title:'YouTube',              fav:'https://www.youtube.com/favicon.ico'},
+  {name:'Wikipedia',  icon:'📖',title:'Wikipedia',            fav:'https://en.wikipedia.org/favicon.ico'},
+  {name:'Duolingo',   icon:'🦜',title:'Duolingo — Learn',     fav:'https://d35aaqx5ub95lt.cloudfront.net/favicon.ico'},
+  {name:'Canvas',     icon:'🎓',title:'Canvas LMS',           fav:'https://du11hjcvx0uqb.cloudfront.net/dist/images/favicon-e10d657a73.ico'},
+  {name:'Khan Academy',icon:'📚',title:'Khan Academy',        fav:'https://www.khanacademy.org/favicon.ico'},
+  {name:'Desmos',     icon:'📐',title:'Desmos Graphing',      fav:'https://www.desmos.com/favicon.ico'},
+  {name:'Google Docs',icon:'📄',title:'Document - Google Docs',fav:'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico'},
+  {name:'Slides',     icon:'📊',title:'Presentation - Slides',fav:'https://ssl.gstatic.com/docs/presentations/images/favicon5.ico'},
 ];
+function buildCloaks(){const g=document.getElementById('cgrid');g.innerHTML='';
+  CLOAKS.forEach(p=>{const el=document.createElement('div');el.className='co';
+    el.innerHTML=`<div class="ci">${p.icon}</div><div class="cn">${p.name}</div>`;
+    el.onclick=()=>applyCloak(p,el);g.appendChild(el);});}
+function applyCloak(p,el){document.title=p.title;
+  let lnk=document.querySelector("link[rel*='icon']");
+  if(!lnk){lnk=document.createElement('link');lnk.rel='shortcut icon';document.head.appendChild(lnk);}
+  lnk.href=p.fav;
+  document.querySelectorAll('.co').forEach(c=>c.classList.remove('on'));if(el)el.classList.add('on');
+  document.getElementById('cst').textContent=p.name;document.getElementById('shc').textContent='ON';
+  toast('Cloaked as: '+p.name,'🎭');}
+function custCloak(){const t=document.getElementById('cltitle').value.trim(),i=document.getElementById('clicon').value.trim();
+  if(!t){toast('Enter a title','⚠️');return;}applyCloak({title:t,fav:i||'',name:t},null);
+  document.querySelectorAll('.co').forEach(c=>c.classList.remove('on'));}
+function resetCloak(){document.title='Stars OS';
+  const l=document.querySelector("link[rel*='icon']");
+  if(l)l.href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⋆</text></svg>";
+  document.querySelectorAll('.co').forEach(c=>c.classList.remove('on'));
+  document.getElementById('cst').textContent='None (Stars OS)';document.getElementById('shc').textContent='OFF';
+  toast('Cloaker reset','🎭');}
 
-function buildCloakGrid() {
-  const grid = document.getElementById('cloak-grid');
-  grid.innerHTML = '';
-  CLOAK_PRESETS.forEach(p => {
-    const el = document.createElement('div');
-    el.className = 'cloak-option';
-    el.innerHTML = `<div class="c-icon">${p.icon}</div><div class="c-name">${p.name}</div>`;
-    el.onclick = () => applyCloak(p, el);
-    grid.appendChild(el);
-  });
-}
+/* FULLSCREEN */
+function goFS(){if(!document.fullscreenElement){document.documentElement.requestFullscreen?.();toast('Fullscreen','⛶');}else document.exitFullscreen?.();}
 
-function applyCloak(preset, el) {
-  document.title = preset.title;
-  let link = document.querySelector("link[rel*='icon']");
-  if (!link) { link = document.createElement('link'); link.rel = 'shortcut icon'; document.head.appendChild(link); }
-  link.href = preset.favicon;
+/* TOASTS */
+function toast(msg,icon='★'){const c=document.getElementById('tst'),el=document.createElement('div');
+  el.className='tt';el.innerHTML=`<span>${icon}</span><span>${msg}</span>`;c.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('on'));
+  setTimeout(()=>{el.classList.remove('on');setTimeout(()=>el.remove(),320);},2900);}
 
-  document.querySelectorAll('.cloak-option').forEach(c => c.classList.remove('selected'));
-  if (el) el.classList.add('selected');
-
-  cloakActive = true;
-  cloakPreset = preset.name;
-  document.getElementById('cloak-status-text').textContent = preset.name;
-  document.getElementById('stat-cloak').textContent = 'ON';
-  toast(`Cloaked as: ${preset.name}`, '🎭');
-}
-
-function applyCustomCloak() {
-  const title = document.getElementById('cloak-title-input').value.trim();
-  const icon  = document.getElementById('cloak-icon-input').value.trim();
-  if (!title) { toast('Enter a custom title', '⚠️'); return; }
-  applyCloak({ title, favicon: icon || '', name: title }, null);
-  document.querySelectorAll('.cloak-option').forEach(c => c.classList.remove('selected'));
-}
-
-function resetCloak() {
-  document.title = 'Stars OS';
-  const link = document.querySelector("link[rel*='icon']");
-  if (link) link.href = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⋆</text></svg>';
-  document.querySelectorAll('.cloak-option').forEach(c => c.classList.remove('selected'));
-  cloakActive = false;
-  cloakPreset = null;
-  document.getElementById('cloak-status-text').textContent = 'None (Stars OS)';
-  document.getElementById('stat-cloak').textContent = 'OFF';
-  toast('Cloaker reset', '🎭');
-}
-
-// ══════════════════════════════════════════════
-// FULLSCREEN
-// ══════════════════════════════════════════════
-function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen?.();
-    toast('Entered fullscreen', '⛶');
-  } else {
-    document.exitFullscreen?.();
-  }
-}
-
-// ══════════════════════════════════════════════
-// TOAST NOTIFICATIONS
-// ══════════════════════════════════════════════
-function toast(msg, icon = '★') {
-  const container = document.getElementById('toast-container');
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.innerHTML = `<span class="toast-icon">${icon}</span><span>${msg}</span>`;
-  container.appendChild(el);
-  requestAnimationFrame(() => el.classList.add('show'));
-  setTimeout(() => {
-    el.classList.remove('show');
-    setTimeout(() => el.remove(), 400);
-  }, 3000);
-}
-
-// ══════════════════════════════════════════════
-// KEYBOARD SHORTCUTS
-// ══════════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  if (e.ctrlKey && e.altKey) {
-    if (e.key === 'h') showPanel('home');
-    if (e.key === 'g') showPanel('games');
-    if (e.key === 'a') showPanel('ai');
-    if (e.key === 'p') showPanel('proxy');
-    if (e.key === 't') showPanel('theme');
-    if (e.key === 'c') showPanel('cloaker');
-  }
-  if (e.key === 'Escape') closeGame();
-});
-
+/* KEYBOARD */
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey&&e.altKey){const m={h:'h',g:'g',a:'ai',p:'px',t:'th',c:'clk',r:'cr'};if(m[e.key])show(m[e.key]);}
+  if(e.key==='Escape')closeGame();});
 </script>
 </body>
 </html>
