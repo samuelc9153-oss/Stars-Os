@@ -27,7 +27,10 @@ input,textarea,button{font-family:inherit}
 body::after{content:'';position:fixed;inset:0;z-index:2;pointer-events:none;
   background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);}
 #bgc,#rc{position:fixed;inset:0;z-index:0;pointer-events:none}
-#rc{z-index:1;opacity:0.13}
+/* rain, particles, aurora ABOVE desktop (z:10) so they're visible as overlays */
+#rc{z-index:20;opacity:0.13;pointer-events:none}
+#aurora-canvas{position:fixed;inset:0;z-index:19;pointer-events:none;opacity:0.18}
+#lightning-canvas{position:fixed;inset:0;z-index:21;pointer-events:none}
 /* ──────── LOADER ──────── */
 #loader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at 50% 38%,#060e26,#020712);}
@@ -362,16 +365,32 @@ input[type=color]{width:0;height:0;opacity:0;position:absolute}
   box-shadow:0 4px 22px rgba(0,0,0,.6);
   transform:translateX(110%);transition:transform .28s var(--ease)}
 .tt.on{transform:translateX(0)}
-/* ──────── PARTICLES ──────── */
-.adot{position:fixed;width:2px;height:2px;background:var(--a1);border-radius:50%;
-  pointer-events:none;z-index:2;animation:ad linear infinite}
+/* ──────── PARTICLES + EFFECTS ──────── */
+.adot{position:fixed;border-radius:50%;
+  pointer-events:none;z-index:22;/* above desktop */
+  animation:ad linear infinite}
 @keyframes ad{0%{opacity:0;transform:translateY(0) scale(0)}10%{opacity:.75}90%{opacity:.2}100%{opacity:0;transform:translateY(-140px) scale(0)}}
-@media(max-width:560px){.sbadge,.blt{display:none}#clk{display:none}.panel{padding:10px}}
+/* shooting star */
+.sstar{position:fixed;height:1px;pointer-events:none;z-index:22;
+  background:linear-gradient(90deg,rgba(255,255,255,0),#fff,rgba(255,255,255,0));
+  animation:shoot linear forwards}
+@keyframes shoot{from{opacity:1;transform:translateX(0) translateY(0)}to{opacity:0;transform:translateX(300px) translateY(200px)}}
+/* hexagon grid pulse */
+.hex-overlay{position:fixed;inset:0;z-index:18;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34z' fill='none' stroke='rgba(82,178,255,0.04)' stroke-width='1'/%3E%3C/svg%3E");
+  animation:hexPulse 4s ease infinite;opacity:0}
+@keyframes hexPulse{0%,100%{opacity:0}50%{opacity:1}}
+/* scanlines above everything non-interactive */
+body::after{content:'';position:fixed;inset:0;z-index:25;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.018) 2px,rgba(0,0,0,0.018) 4px);}
 </style>
 </head>
 <body>
 <canvas id="bgc"></canvas>
 <canvas id="rc"></canvas>
+<canvas id="aurora-canvas"></canvas>
+<canvas id="lightning-canvas"></canvas>
+<div class="hex-overlay" id="hex-overlay" style="display:none"></div>
 <div id="tst"></div>
 
 <!-- GAME OVERLAY -->
@@ -575,7 +594,11 @@ input[type=color]{width:0;height:0;opacity:0;position:absolute}
         <span class="thl">Visual FX</span>
         <div class="tgrow"><span class="tgl">🌧 Rain Effect</span><div class="tg on" id="tgr" onclick="tfx('rain',this)"></div></div>
         <div class="tgrow"><span class="tgl">🪐 3D Planet</span><div class="tg on" id="tgp" onclick="tfx('planet',this)"></div></div>
-        <div class="tgrow"><span class="tgl">✨ Particles</span><div class="tg on" id="tgpt" onclick="tfx('pts',this)"></div></div>
+        <div class="tgrow"><span class="tgl">✨ Floating Particles</span><div class="tg on" id="tgpt" onclick="tfx('pts',this)"></div></div>
+        <div class="tgrow"><span class="tgl">🌌 Aurora Borealis</span><div class="tg on" id="tgau" onclick="tfx('aurora',this)"></div></div>
+        <div class="tgrow"><span class="tgl">🌠 Shooting Stars</span><div class="tg on" id="tgss" onclick="tfx('shooting',this)"></div></div>
+        <div class="tgrow"><span class="tgl">⚡ Lightning Flashes</span><div class="tg" id="tglt" onclick="tfx('lightning',this)"></div></div>
+        <div class="tgrow"><span class="tgl">🔷 Hex Grid Overlay</span><div class="tg" id="tghx" onclick="tfx('hex',this)"></div></div>
         <div class="tgrow"><span class="tgl">📺 Scanlines</span><div class="tg on" id="tgsc" onclick="tfx('scan',this)"></div></div>
       </div>
 
@@ -681,7 +704,7 @@ input[type=color]{width:0;height:0;opacity:0;position:absolute}
 /* ═══════════════════════════════════
    STARS OS v2 · by Samuel
 ═══════════════════════════════════ */
-let FX={rain:true,planet:true,pts:true,scan:true};
+let FX={rain:true,planet:true,pts:true,scan:true,aurora:true,lightning:false,shooting:true,hex:false};
 let apiKey='',chatH=[],sessionT=Date.now(),activeCat='all';
 
 /* THREE.JS */
@@ -769,12 +792,97 @@ let apiKey='',chatH=[],sessionT=Date.now(),activeCat='all';
   draw();
 })();
 
-/* PARTICLES */
-setInterval(()=>{if(!FX.pts)return;
+/* ── PARTICLES — fixed z-index above desktop ── */
+setInterval(()=>{
+  if(!FX.pts)return;
   const d=document.createElement('div');d.className='adot';
-  d.style.left=Math.random()*100+'vw';d.style.bottom='0';
-  d.style.animationDuration=(5+Math.random()*7)+'s';
-  document.body.appendChild(d);setTimeout(()=>d.remove(),12000);},720);
+  const size=Math.random()<0.7?2:Math.random()<0.5?3:1;
+  d.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}vw;bottom:0;
+    background:${Math.random()<0.6?'var(--a1)':Math.random()<0.5?'var(--a2)':'var(--a4)'};
+    animation-duration:${5+Math.random()*7}s;animation-delay:${Math.random()*1.5}s;`;
+  document.body.appendChild(d);setTimeout(()=>d.remove(),13000);
+},650);
+
+/* ── SHOOTING STARS ── */
+function shootStar(){
+  if(!FX.shooting)return;
+  const s=document.createElement('div');s.className='sstar';
+  const w=40+Math.random()*120;
+  s.style.cssText=`width:${w}px;top:${Math.random()*60}vh;left:${Math.random()*80}vw;
+    animation-duration:${0.6+Math.random()*0.8}s;opacity:${0.5+Math.random()*0.5};`;
+  document.body.appendChild(s);setTimeout(()=>s.remove(),1500);
+}
+setInterval(()=>{if(FX.shooting)shootStar();},Math.random()*3000+2000);
+setInterval(()=>{if(FX.shooting&&Math.random()>.7){shootStar();setTimeout(shootStar,200);}},4000);
+
+/* ── AURORA ── */
+(function(){
+  const c=document.getElementById('aurora-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  function rsz(){c.width=innerWidth;c.height=innerHeight;}
+  rsz();window.addEventListener('resize',rsz);
+  let t=0;
+  function drawAurora(){
+    if(!FX.aurora){ctx.clearRect(0,0,c.width,c.height);requestAnimationFrame(drawAurora);return;}
+    ctx.clearRect(0,0,c.width,c.height);
+    const bands=3;
+    for(let b=0;b<bands;b++){
+      const y=c.height*(0.1+b*0.12)+Math.sin(t*0.4+b*1.2)*60;
+      const grad=ctx.createLinearGradient(0,y-80,0,y+80);
+      const hues=[[160,200],[260,300],[180,220]];
+      const [h1,h2]=hues[b];
+      grad.addColorStop(0,'rgba(0,0,0,0)');
+      grad.addColorStop(0.3,`hsla(${h1+Math.sin(t*.3+b)*20},100%,60%,0.12)`);
+      grad.addColorStop(0.5,`hsla(${h2+Math.cos(t*.4+b)*15},100%,65%,0.18)`);
+      grad.addColorStop(0.7,`hsla(${h1+Math.sin(t*.5+b)*25},100%,60%,0.1)`);
+      grad.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.moveTo(0,y-80);
+      for(let x=0;x<=c.width;x+=40){
+        const wave=Math.sin(x*0.008+t*0.5+b)*50+Math.cos(x*0.012+t*0.3+b)*30;
+        ctx.lineTo(x,y+wave);
+      }
+      ctx.lineTo(c.width,y+160);ctx.lineTo(0,y+160);ctx.closePath();
+      ctx.fill();
+    }
+    t+=0.012;requestAnimationFrame(drawAurora);
+  }
+  drawAurora();
+})();
+
+/* ── LIGHTNING ── */
+(function(){
+  const c=document.getElementById('lightning-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  function rsz(){c.width=innerWidth;c.height=innerHeight;}
+  rsz();window.addEventListener('resize',rsz);
+  function bolt(x1,y1,x2,y2,depth){
+    if(depth===0){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();return;}
+    const mx=(x1+x2)/2+(Math.random()-.5)*80/depth;
+    const my=(y1+y2)/2+(Math.random()-.5)*80/depth;
+    bolt(x1,y1,mx,my,depth-1);bolt(mx,my,x2,y2,depth-1);
+    if(Math.random()<0.3)bolt(mx,my,mx+(Math.random()-.5)*100,my+50+Math.random()*80,depth-1);
+  }
+  function flash(){
+    if(!FX.lightning)return;
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.strokeStyle=`rgba(180,200,255,${0.4+Math.random()*.4})`;
+    ctx.lineWidth=1+Math.random();
+    ctx.shadowBlur=8;ctx.shadowColor='rgba(120,160,255,0.8)';
+    const x=Math.random()*c.width;
+    bolt(x,0,x+(Math.random()-.5)*200,c.height*0.5,4);
+    setTimeout(()=>ctx.clearRect(0,0,c.width,c.height),120);
+    if(Math.random()<0.4)setTimeout(()=>{
+      ctx.strokeStyle=`rgba(200,220,255,${0.3+Math.random()*.3})`;
+      bolt(x+(Math.random()-0.5)*60,0,x+(Math.random()-.5)*200,c.height*0.5,3);
+      setTimeout(()=>ctx.clearRect(0,0,c.width,c.height),80);
+    },180);
+  }
+  setInterval(()=>{if(FX.lightning&&Math.random()<0.35)flash();},4000);
+})();
 
 /* CLOCK */
 setInterval(()=>{
@@ -813,33 +921,33 @@ const GAMES=[
   // ── ACTION ──
   {name:'Flappy Bird',   cat:'action',icon:'🐦',url:'https://s3-eu-west-1.amazonaws.com/apps.playcanvas.com/TAhlQLDa/index.html',color:'#ff4f8b',stars:'★★★☆☆'},
   {name:'Run 3',         cat:'action',icon:'🏃',url:'https://script.google.com/macros/s/AKfycbzH19beOtthmgHOAyQwTzkPrGUquWfIq91ElX_xLebPeMZTByPCWbHpMX2ANYTjcTjs/exec',color:'#ff6b35',stars:'★★★★☆'},
-  {name:'Stickman Duel',    cat:'action',icon:'☻',url:'https://n-6zrzh5oc474uxufjxoxmmfreely2skj3gwmb3rq-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ff2020',stars:'★★★★☆'},
+  {name:'Stickman Duel', cat:'action',icon:'☻', url:'https://n-6zrzh5oc474uxufjxoxmmfreely2skj3gwmb3rq-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ff2020',stars:'★★★★☆'},
   {name:'Slope',         cat:'action',icon:'🌀',url:'https://slope-unblocked-10x.github.io/action-games/slope/',color:'#00c8ff',stars:'★★★★★'},
-  {name:'Tanuki Sunset',cat:'action',icon:'🐀 ',url:'https://ijnfem.github.io/seraph/games/tanukisunset/index.html',color:'#00c8ff',stars:'★★★★★'},
-  {name:'Slope Rider',cat:'action',icon:'🌀',url:'https://azgames.io/slope-rider.embed',color:'#00c8ff',stars:'★★★★★'},
-   {name:'Sausage Flip',cat:'action',icon:'🌭',url:'https://ottergames.org/g/sausage-flip',color:'#00c8ff',stars:'★★★★★'},
-   // ── ARCADE ──
+  {name:'Tanuki Sunset',  cat:'action',icon:'🦝',url:'https://ijnfem.github.io/seraph/games/tanukisunset/index.html',color:'#ff9040',stars:'★★★★★'},
+  {name:'Slope Rider',   cat:'action',icon:'🛹',url:'https://azgames.io/slope-rider.embed',color:'#00c8ff',stars:'★★★★★'},
+  {name:'Sausage Flip',  cat:'action',icon:'🌭',url:'https://ottergames.org/g/sausage-flip',color:'#ff8040',stars:'★★★★★'},
+  // ── ARCADE ──
   {name:'Snake',         cat:'arcade',icon:'🐍',url:'https://playsnake.org/',color:'#00e5a0',stars:'★★★☆☆'},
   {name:'Tetris',        cat:'arcade',icon:'🟦',url:'https://n-rjpaswv5ivzz3xomtg4355kv3bgwasfet3p5qcq-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#52b2ff',stars:'★★★★★'},
   {name:'Pac-Man',       cat:'arcade',icon:'🟡',url:'https://n-gurrg7busogqvqufle2m7zeojayjjqphsslqyiy-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffe200',stars:'★★★★☆'},
-  {name:'Monkey Mart',   cat:'Arcade',icon:'🐒',url:'https://monkeymart6x.io/monkey-mart.embed',color:'#ffaa00',stars:'★★★★☆'},
+  {name:'Monkey Mart',   cat:'arcade',icon:'🐒',url:'https://monkeymart6x.io/monkey-mart.embed',color:'#ffaa00',stars:'★★★★☆'},
   // ── PUZZLE ──
-  {name:'2048',          cat:'Puzzle',icon:'🟨',url:'https://n-p7h6bh7fdvamgp3vkuvdj4xndzs7jm3s64l5wja-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffa040',stars:'★★★★☆'},
+  {name:'2048',          cat:'puzzle',icon:'🟨',url:'https://n-p7h6bh7fdvamgp3vkuvdj4xndzs7jm3s64l5wja-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffa040',stars:'★★★★☆'},
   // ── CARD ──
   {name:'Chess',         cat:'card',  icon:'♟️',url:'https://script.google.com/macros/s/AKfycbwD4aYk8804rFEa2GleUacBH110qmzS8bz-wHnRTTigY2HkE3iafHYLRCkH0nUGc_oA/exec',color:'#aaaaaa',stars:'★★★★★'},
-  {name:'Google Solitaire',cat:'card',  icon:'🃏',url:'https://www.google.com/logos/fnbx/solitaire/standalone.html',color:'#ff4f8b',stars:'★★★★☆'},
+  {name:'Google Solitaire',cat:'card',icon:'🃏',url:'https://www.google.com/logos/fnbx/solitaire/standalone.html',color:'#ff4f8b',stars:'★★★★☆'},
   // ── SPORT ──
-  {name:'Basket Bros',   cat:'Sport', icon:'🏀',url:'https://script.google.com/macros/s/AKfycbxUfaDSpH-0SJL0WPKt38JY7OOOGMmtpY9JTSbL8pvtjxS7jSpNHHu6MdZgWUshIU00Kw/exec',color:'#ff8800',stars:'★★★★☆'},
-  {name:'Basket Random', cat:'Sport', icon:'🏀',url:'https://script.google.com/macros/s/AKfycbwiQgeRHVDP8wzJ_CeSE1LyaKCMu1qdlopwylhD4LdBvBVd2y36VjlWY0iyk38WH0JiJA/exec',color:'#ffa040',stars:'★★★★☆'},
-  {name:'Soccer Random', cat:'Sport', icon:'⚽',url:'https://script.google.com/macros/s/AKfycbwr79gF5RqgUkBr0YEX16ayQF4aqdcHxaLRubcOggFvXqp-PiG7tw0uyvr3vlUEpDnC/exec',color:'#ffa040',stars:'★★★★☆'},
-  {name:'1 On 1 Soccer', cat:'Sport', icon:'⚽',url:'https://script.google.com/macros/s/AKfycbxJ3oet4bnNqQK_nqPo6KSwPlvIMR448__kEYKx_WN-QbncNc98PEc-qaFme7l2tbKH/exec',color:'#ffa040',stars:'★★★★☆'},
+  {name:'Basket Bros',   cat:'sport', icon:'🏀',url:'https://script.google.com/macros/s/AKfycbxUfaDSpH-0SJL0WPKt38JY7OOOGMmtpY9JTSbL8pvtjxS7jSpNHHu6MdZgWUshIU00Kw/exec',color:'#ff8800',stars:'★★★★☆'},
+  {name:'Basket Random', cat:'sport', icon:'🏀',url:'https://script.google.com/macros/s/AKfycbwiQgeRHVDP8wzJ_CeSE1LyaKCMu1qdlopwylhD4LdBvBVd2y36VjlWY0iyk38WH0JiJA/exec',color:'#ffa040',stars:'★★★★☆'},
+  {name:'Soccer Random', cat:'sport', icon:'⚽',url:'https://script.google.com/macros/s/AKfycbwr79gF5RqgUkBr0YEX16ayQF4aqdcHxaLRubcOggFvXqp-PiG7tw0uyvr3vlUEpDnC/exec',color:'#ffa040',stars:'★★★★☆'},
+  {name:'1 On 1 Soccer', cat:'sport', icon:'⚽',url:'https://script.google.com/macros/s/AKfycbxJ3oet4bnNqQK_nqPo6KSwPlvIMR448__kEYKx_WN-QbncNc98PEc-qaFme7l2tbKH/exec',color:'#ffa040',stars:'★★★★☆'},
   // ── IDLE ──
   {name:'Cookie Clicker',cat:'idle',  icon:'🍪',url:'https://script.google.com/macros/s/AKfycbxGM35J29NkO-2LYjxWj_cA9IUaaXypkUy-LqXyLRbGTz0R6lXmAEapz1STN1jlTIRavw/exec/',color:'#c87941',stars:'★★★★★'},
 ];
-/* ─────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────
    ➕ TO ADD A GAME — paste a new entry anywhere above:
-   { name:'My Game', cat:'arcade', icon:'🎮', url:'https://url.com', color:'#hex', stars:'★★★★☆' },
-   Cats (any case OK): action · arcade · puzzle · card · sport · idle
+   { name:'Title', cat:'arcade', icon:'🎮', url:'https://url.com', color:'#hex', stars:'★★★★☆' },
+   Cats (any case): action · arcade · puzzle · card · sport · idle
 ──────────────────────────────────────────────────── */
 
 // normalize cat — fixes Capital vs lowercase mismatch
@@ -933,6 +1041,8 @@ function setBlur(v){document.documentElement.style.setProperty('--blur',v+'px');
 function tfx(n,el){FX[n]=!FX[n];el.classList.toggle('on',FX[n]);
   if(n==='rain')document.getElementById('rc').style.opacity=FX.rain?'.13':'0';
   if(n==='planet')document.getElementById('bgc').style.opacity=FX.planet?'1':'0';
+  if(n==='aurora')document.getElementById('aurora-canvas').style.opacity=FX.aurora?'0.18':'0';
+  if(n==='hex'){const h=document.getElementById('hex-overlay');if(h)h.style.display=FX.hex?'block':'none';}
   toast(n.charAt(0).toUpperCase()+n.slice(1)+': '+(FX[n]?'ON':'OFF'),'✨');}
 
 /* CLOAKER */
