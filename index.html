@@ -1114,30 +1114,30 @@ document.addEventListener('click',e=>{if(!e.target.closest('.ni'))cdd();});
 ═══════════════════════════════════ */
 const GAMES=[
   // ── ACTION ──
-  {name:'Flappy Bird',   cat:'action',icon:'🐦',url:'https://s3-eu-west-1.amazonaws.com/apps.playcanvas.com/TAhlQLDa/index.html',color:'#ff4f8b',stars:'★★★☆☆'},
-  {name:'Run 3',         cat:'action',icon:'🏃',url:'https://script.google.com/macros/s/AKfycbzH19beOtthmgHOAyQwTzkPrGUquWfIq91ElX_xLebPeMZTByPCWbHpMX2ANYTjcTjs/exec',color:'#ff6b35',stars:'★★★★☆'},
-  {name:'Stickman Duel', cat:'action',icon:'☻', url:'https://n-6zrzh5oc474uxufjxoxmmfreely2skj3gwmb3rq-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ff2020',stars:'★★★★☆'},
-  {name:'Slope',         cat:'action',icon:'🌀',url:'https://slope-unblocked-10x.github.io/action-games/slope/',color:'#00c8ff',stars:'★★★★★'},
-  {name:'Tanuki Sunset',  cat:'action',icon:'🦝',url:'https://ijnfem.github.io/seraph/games/tanukisunset/index.html',color:'#ff9040',stars:'★★★★★'},
-  {name:'Slope Rider',   cat:'action',icon:'🛹',url:'https://azgames.io/slope-rider.embed',color:'#00c8ff',stars:'★★★★★'},
-  {name:'Sausage Flip',  cat:'action',icon:'🌭',url:'https://ottergames.org/g/sausage-flip',color:'#ff8040',stars:'★★★★★'},
+    {name:'Flappy Bird',   cat:'action',icon:':bird:',url:'https://s3-eu-west-1.amazonaws.com/apps.playcanvas.com/TAhlQLDa/index.html',color:'#ff4f8b',stars:'★★★☆☆'},
+  {name:'Run 3',         cat:'action',icon:':person_running:',url:'https://script.google.com/macros/s/AKfycbzH19beOtthmgHOAyQwTzkPrGUquWfIq91ElX_xLebPeMZTByPCWbHpMX2ANYTjcTjs/exec',color:'#ff6b35',stars:'★★★★☆'},
+  {name:'Stickman Duel', cat:'action',icon:'☻', url:'http://script.google.com/macros/s/AKfycbwAoTmRTzE6ydvLBsbUcwDvlzS36xbr263_ttMmz8pBgmf0ih3RHJNeYFe3-evGMeMF/exec',color:'#ff2020',stars:'★★★★☆'},
+  {name:'Slope',         cat:'action',icon:':cyclone:',url:'https://slope-unblocked-10x.github.io/action-games/slope/',color:'#00c8ff',stars:'★★★★★'},
+  {name:'Tanuki Sunset',  cat:'action',icon:':raccoon:',url:'https://ijnfem.github.io/seraph/games/tanukisunset/index.html',color:'#ff9040',stars:'★★★★★'},
+  {name:'Slope Rider',   cat:'action',icon:':skateboard:',url:'https://azgames.io/slope-rider.embed',color:'#00c8ff',stars:'★★★★★'},
+  {name:'Sausage Flip',  cat:'action',icon:':hotdog:',url:'https://ottergames.org/g/sausage-flip',color:'#ff8040',stars:'★★★★★'},
   // ── ARCADE ──
-  {name:'Snake',         cat:'arcade',icon:'🐍',url:'https://playsnake.org/',color:'#00e5a0',stars:'★★★☆☆'},
-  {name:'Tetris',        cat:'arcade',icon:'🟦',url:'https://n-rjpaswv5ivzz3xomtg4355kv3bgwasfet3p5qcq-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#52b2ff',stars:'★★★★★'},
-  {name:'Pac-Man',       cat:'arcade',icon:'🟡',url:'https://n-gurrg7busogqvqufle2m7zeojayjjqphsslqyiy-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffe200',stars:'★★★★☆'},
-  {name:'Monkey Mart',   cat:'arcade',icon:'🐒',url:'https://monkeymart6x.io/monkey-mart.embed',color:'#ffaa00',stars:'★★★★☆'},
+  {name:'Snake',         cat:'arcade',icon:':snake:',url:'https://playsnake.org/',color:'#00e5a0',stars:'★★★☆☆'},
+  {name:'Tetris',        cat:'arcade',icon:':blue_square:',url:'https://n-rjpaswv5ivzz3xomtg4355kv3bgwasfet3p5qcq-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#52b2ff',stars:'★★★★★'},
+  {name:'Pac-Man',       cat:'arcade',icon:':yellow_circle:',url:'https://n-gurrg7busogqvqufle2m7zeojayjjqphsslqyiy-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffe200',stars:'★★★★☆'},
+  {name:'Monkey Mart',   cat:'arcade',icon:':monkey:',url:'https://monkeymart6x.io/monkey-mart.embed',color:'#ffaa00',stars:'★★★★☆'},
   // ── PUZZLE ──
-  {name:'2048',          cat:'puzzle',icon:'🟨',url:'https://n-p7h6bh7fdvamgp3vkuvdj4xndzs7jm3s64l5wja-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffa040',stars:'★★★★☆'},
+  {name:'2048',          cat:'puzzle',icon:':yellow_square:',url:'https://n-p7h6bh7fdvamgp3vkuvdj4xndzs7jm3s64l5wja-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ffa040',stars:'★★★★☆'},
   // ── CARD ──
-  {name:'Chess',         cat:'card',  icon:'♟️',url:'https://script.google.com/macros/s/AKfycbwD4aYk8804rFEa2GleUacBH110qmzS8bz-wHnRTTigY2HkE3iafHYLRCkH0nUGc_oA/exec',color:'#aaaaaa',stars:'★★★★★'},
-  {name:'Google Solitaire',cat:'card',icon:'🃏',url:'https://www.google.com/logos/fnbx/solitaire/standalone.html',color:'#ff4f8b',stars:'★★★★☆'},
+  {name:'Chess',         cat:'card',  icon:':chess_pawn:',url:'https://script.google.com/macros/s/AKfycbwD4aYk8804rFEa2GleUacBH110qmzS8bz-wHnRTTigY2HkE3iafHYLRCkH0nUGc_oA/exec',color:'#aaaaaa',stars:'★★★★★'},
+  {name:'Google Solitaire',cat:'card',icon:':black_joker:',url:'https://www.google.com/logos/fnbx/solitaire/standalone.html',color:'#ff4f8b',stars:'★★★★☆'},
   // ── SPORT ──
-  {name:'Basket Bros',   cat:'sport', icon:'🏀',url:'https://script.google.com/macros/s/AKfycbxUfaDSpH-0SJL0WPKt38JY7OOOGMmtpY9JTSbL8pvtjxS7jSpNHHu6MdZgWUshIU00Kw/exec',color:'#ff8800',stars:'★★★★☆'},
-  {name:'Basket Random', cat:'sport', icon:'🏀',url:'https://script.google.com/macros/s/AKfycbwiQgeRHVDP8wzJ_CeSE1LyaKCMu1qdlopwylhD4LdBvBVd2y36VjlWY0iyk38WH0JiJA/exec',color:'#ffa040',stars:'★★★★☆'},
-  {name:'Soccer Random', cat:'sport', icon:'⚽',url:'https://script.google.com/macros/s/AKfycbwr79gF5RqgUkBr0YEX16ayQF4aqdcHxaLRubcOggFvXqp-PiG7tw0uyvr3vlUEpDnC/exec',color:'#ffa040',stars:'★★★★☆'},
-  {name:'1 On 1 Soccer', cat:'sport', icon:'⚽',url:'https://script.google.com/macros/s/AKfycbxJ3oet4bnNqQK_nqPo6KSwPlvIMR448__kEYKx_WN-QbncNc98PEc-qaFme7l2tbKH/exec',color:'#ffa040',stars:'★★★★☆'},
+  {name:'Basket Bros',   cat:'sport', icon:':basketball:',url:'https://script.google.com/macros/s/AKfycbxUfaDSpH-0SJL0WPKt38JY7OOOGMmtpY9JTSbL8pvtjxS7jSpNHHu6MdZgWUshIU00Kw/exec',color:'#ff8800',stars:'★★★★☆'},
+  {name:'Basket Random', cat:'sport', icon:':basketball:',url:'https://script.google.com/macros/s/AKfycbwiQgeRHVDP8wzJ_CeSE1LyaKCMu1qdlopwylhD4LdBvBVd2y36VjlWY0iyk38WH0JiJA/exec',color:'#ffa040',stars:'★★★★☆'},
+  {name:'Soccer Random', cat:'sport', icon:':soccer:',url:'https://script.google.com/macros/s/AKfycbwr79gF5RqgUkBr0YEX16ayQF4aqdcHxaLRubcOggFvXqp-PiG7tw0uyvr3vlUEpDnC/exec',color:'#ffa040',stars:'★★★★☆'},
+  {name:'1 On 1 Soccer', cat:'sport', icon:':soccer:',url:'https://script.google.com/macros/s/AKfycbxJ3oet4bnNqQK_nqPo6KSwPlvIMR448__kEYKx_WN-QbncNc98PEc-qaFme7l2tbKH/exec',color:'#ffa040',stars:'★★★★☆'},
   // ── IDLE ──
-  {name:'Cookie Clicker',cat:'idle',  icon:'🍪',url:'https://script.google.com/macros/s/AKfycbxGM35J29NkO-2LYjxWj_cA9IUaaXypkUy-LqXyLRbGTz0R6lXmAEapz1STN1jlTIRavw/exec/',color:'#c87941',stars:'★★★★★'},
+  {name:'Cookie Clicker',cat:'idle',  icon:':cookie:',url:'https://script.google.com/macros/s/AKfycbxGM35J29NkO-2LYjxWj_cA9IUaaXypkUy-LqXyLRbGTz0R6lXmAEapz1STN1jlTIRavw/exec/',color:'#c87941',stars:'★★★★★'},
 ];
 /* ────────────────────────────────────────────────────
    ➕ TO ADD A GAME — paste a new entry anywhere above:
