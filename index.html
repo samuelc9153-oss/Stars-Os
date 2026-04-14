@@ -304,6 +304,19 @@ input[type=color]{width:0;height:0;opacity:0;position:absolute}
   position:absolute;top:3px;left:3px;transition:var(--t)}
 .tg.on{background:rgba(82,178,255,.2);border-color:var(--a1)}
 .tg.on::after{transform:translateX(19px);background:var(--a1);box-shadow:0 0 8px var(--a1)}
+/* ──────── APP LAUNCHER ──────── */
+.app-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:11px;margin-bottom:4px}
+.app-card{background:var(--s2);border:1px solid var(--b);border-radius:var(--r2);
+  padding:16px 10px 13px;cursor:pointer;text-align:center;transition:var(--t);
+  display:flex;flex-direction:column;align-items:center;gap:7px}
+.app-card:hover{border-color:var(--bh);transform:translateY(-4px) scale(1.04);
+  box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 18px rgba(82,178,255,calc(.14*var(--glow)))}
+.app-ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;
+  justify-content:center;font-size:1.7rem;box-shadow:0 4px 18px rgba(0,0,0,.4);
+  transition:var(--t);flex-shrink:0}
+.app-card:hover .app-ico{transform:scale(1.08);box-shadow:0 8px 28px rgba(0,0,0,.5)}
+.app-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.04em;color:var(--tx)}
+.app-sub{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--tx3);letter-spacing:.06em}
 /* ──────── PLANET CUSTOMIZER ──────── */
 .planet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-bottom:4px}
 .ptype{background:var(--s2);border:2px solid var(--b);border-radius:var(--r);
@@ -441,6 +454,7 @@ body::after{content:'';position:fixed;inset:0;z-index:25;pointer-events:none;
         </button>
         <div class="ndd" id="ddt">
           <a onclick="show('ai');cdd()"><span class="di">🤖</span>AI Assistant</a>
+          <a onclick="show('ap');cdd()"><span class="di">📱</span>App Launcher</a>
           <a onclick="show('px');cdd()"><span class="di">🌐</span>Proxy Browser</a>
           <a onclick="show('clk');cdd()"><span class="di">🎭</span>Tab Cloaker</a>
           <a onclick="show('th');cdd()"><span class="di">🎨</span>Customize</a>
@@ -450,6 +464,7 @@ body::after{content:'';position:fixed;inset:0;z-index:25;pointer-events:none;
         </div>
       </div>
       <button class="nbtn" onclick="show('ai')">🤖 AI</button>
+      <button class="nbtn" onclick="show('ap')">📱 Apps</button>
       <button class="nbtn" onclick="show('px')">🌐 Proxy</button>
       <button class="nbtn" onclick="show('clk')">🎭 Cloak</button>
     </nav>
@@ -519,17 +534,37 @@ body::after{content:'';position:fixed;inset:0;z-index:25;pointer-events:none;
 
     <!-- AI -->
     <div class="panel" id="pai">
-      <div class="stitle"><span class="sti">🤖</span>AI Assistant<span class="sttag">Claude</span></div>
-      <div class="apin">
-        <span style="font-size:1.1rem">🔑</span>
+      <div class="stitle"><span class="sti">🤖</span>AI Assistant<span class="sttag">FREE · OpenRouter</span></div>
+
+      <!-- FREE key setup box -->
+      <div class="apin" style="background:rgba(0,229,160,0.06);border-color:rgba(0,229,160,0.25)">
+        <span style="font-size:1.3rem">🆓</span>
         <div style="flex:1">
-          <p><strong style="color:#ffc555">API Key Required</strong> — Enter your Anthropic key below (session only, never stored). Get one at <code>console.anthropic.com</code></p>
-          <input class="akf" type="password" id="akey" placeholder="sk-ant-YOUR_KEY_HERE" oninput="setKey(this.value)"/>
+          <p style="color:rgba(0,229,160,0.85)">
+            <strong style="color:#00e5a0">FREE API — OpenRouter</strong><br/>
+            1. Go to <code style="color:#00e5a0">openrouter.ai</code> → Sign Up (free, no card needed)<br/>
+            2. Click <strong>Keys</strong> → <strong>Create Key</strong><br/>
+            3. Paste it below — you get free AI every day automatically ✓
+          </p>
+          <input class="akf" type="password" id="akey" style="border-color:rgba(0,229,160,0.3);color:#00e5a0"
+            placeholder="sk-or-v1-YOUR_FREE_KEY_HERE" oninput="setKey(this.value)"/>
         </div>
       </div>
+
+      <!-- Model selector -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--tx3);letter-spacing:.1em">MODEL:</span>
+        <div class="cat on" id="m1" onclick="setModel('meta-llama/llama-3.1-8b-instruct:free',this)">🦙 Llama 3.1 FREE</div>
+        <div class="cat" id="m2" onclick="setModel('mistralai/mistral-7b-instruct:free',this)">🌬️ Mistral FREE</div>
+        <div class="cat" id="m3" onclick="setModel('google/gemma-2-9b-it:free',this)">💎 Gemma 2 FREE</div>
+        <div class="cat" id="m4" onclick="setModel('anthropic/claude-3-haiku',this)">⭐ Claude Haiku</div>
+      </div>
+
       <div class="card chatwin" id="chat">
         <div class="msg"><div class="av b">★</div>
-          <div class="bbl">Hey! I'm <strong style="color:var(--a1)">Stars AI</strong> — Samuel's exclusive assistant. Add your API key and ask me anything.<br/><small style="color:var(--tx3);font-size:.75rem">Powered by Anthropic · Samuel's Build</small></div>
+          <div class="bbl">Hey! I'm <strong style="color:var(--a1)">Stars AI</strong> — Samuel's exclusive assistant.<br/>
+          Get a <strong style="color:#00e5a0">free key at openrouter.ai</strong> (no credit card!) then ask me anything.<br/>
+          <small style="color:var(--tx3);font-size:.73rem">Powered by OpenRouter · Free models available daily · Samuel's Build</small></div>
         </div>
       </div>
       <div class="airow">
@@ -538,27 +573,187 @@ body::after{content:'';position:fixed;inset:0;z-index:25;pointer-events:none;
           oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,105)+'px'"></textarea>
         <button class="btn bp" onclick="sendAI()">↑ Send</button>
       </div>
-      <div class="ainote">Enter = send · Shift+Enter = new line · Stars OS by Samuel</div>
+      <div class="ainote">Enter = send · Shift+Enter = new line · Free via openrouter.ai · Stars OS by Samuel</div>
+    </div>
+
+    <!-- APPS -->
+    <div class="panel" id="pap">
+      <div class="stitle"><span class="sti">📱</span>App Launcher<span class="sttag">Opens in New Tab</span></div>
+
+      <div class="card" style="background:rgba(82,178,255,0.05);border-color:rgba(82,178,255,0.2);padding:12px 16px;margin-bottom:4px">
+        <p style="font-size:.82rem;color:var(--tx2);line-height:1.65">
+          <strong style="color:var(--a1)">ℹ️ Why new tab?</strong> Sites like Spotify, YouTube, and Netflix use security headers that block embedding in other pages — it's enforced by the browser itself and cannot be bypassed client-side. These launch in a clean new tab instantly.
+        </p>
+      </div>
+
+      <!-- MUSIC -->
+      <div class="stitle" style="font-size:.82rem;margin-bottom:10px"><span class="sti" style="width:24px;height:24px;font-size:.7rem">🎵</span>Music</div>
+      <div class="app-grid">
+        <div class="app-card" onclick="launchApp('https://open.spotify.com','Spotify')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#1db954,#158a3e)">🎵</div>
+          <div class="app-name">Spotify</div>
+          <div class="app-sub">Music streaming</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://music.youtube.com','YouTube Music')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#ff0000,#900000)">🎶</div>
+          <div class="app-name">YT Music</div>
+          <div class="app-sub">YouTube Music</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://soundcloud.com','SoundCloud')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#ff5500,#cc2200)">🔊</div>
+          <div class="app-name">SoundCloud</div>
+          <div class="app-sub">Free music</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://www.pandora.com','Pandora')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#224099,#0f1f66)">📻</div>
+          <div class="app-name">Pandora</div>
+          <div class="app-sub">Radio & music</div>
+        </div>
+      </div>
+
+      <!-- VIDEO -->
+      <div class="stitle" style="font-size:.82rem;margin:14px 0 10px"><span class="sti" style="width:24px;height:24px;font-size:.7rem">📺</span>Video</div>
+      <div class="app-grid">
+        <div class="app-card" onclick="launchApp('https://www.youtube.com','YouTube')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#ff0000,#990000)">▶️</div>
+          <div class="app-name">YouTube</div>
+          <div class="app-sub">Videos & shorts</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://www.netflix.com','Netflix')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#e50914,#8b0000)">🎬</div>
+          <div class="app-name">Netflix</div>
+          <div class="app-sub">Movies & TV</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://www.twitch.tv','Twitch')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#9146ff,#5a1fcc)">📡</div>
+          <div class="app-name">Twitch</div>
+          <div class="app-sub">Live streams</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://www.tiktok.com','TikTok')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#010101,#ff0050)">🎭</div>
+          <div class="app-name">TikTok</div>
+          <div class="app-sub">Short videos</div>
+        </div>
+      </div>
+
+      <!-- SOCIAL -->
+      <div class="stitle" style="font-size:.82rem;margin:14px 0 10px"><span class="sti" style="width:24px;height:24px;font-size:.7rem">💬</span>Social</div>
+      <div class="app-grid">
+        <div class="app-card" onclick="launchApp('https://discord.com/app','Discord')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#5865f2,#3a47d5)">💬</div>
+          <div class="app-name">Discord</div>
+          <div class="app-sub">Chat & voice</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://www.instagram.com','Instagram')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#e1306c,#833ab4,#fd1d1d)">📸</div>
+          <div class="app-name">Instagram</div>
+          <div class="app-sub">Photos & reels</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://twitter.com','X / Twitter')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#1a1a1a,#333)">✖️</div>
+          <div class="app-name">X / Twitter</div>
+          <div class="app-sub">Posts & news</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://www.snapchat.com','Snapchat')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#fffc00,#f0e800)">👻</div>
+          <div class="app-name">Snapchat</div>
+          <div class="app-sub">Snaps & stories</div>
+        </div>
+      </div>
+
+      <!-- PRODUCTIVITY -->
+      <div class="stitle" style="font-size:.82rem;margin:14px 0 10px"><span class="sti" style="width:24px;height:24px;font-size:.7rem">⚙️</span>Productivity</div>
+      <div class="app-grid">
+        <div class="app-card" onclick="launchApp('https://docs.google.com','Google Docs')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#4285f4,#1a73e8)">📄</div>
+          <div class="app-name">Google Docs</div>
+          <div class="app-sub">Documents</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://drive.google.com','Google Drive')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#34a853,#fbbc05,#ea4335)">💾</div>
+          <div class="app-name">Google Drive</div>
+          <div class="app-sub">Cloud storage</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://mail.google.com','Gmail')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#ea4335,#c62828)">📧</div>
+          <div class="app-name">Gmail</div>
+          <div class="app-sub">Email</div>
+        </div>
+        <div class="app-card" onclick="launchApp('https://classroom.google.com','Google Classroom')">
+          <div class="app-ico" style="background:linear-gradient(135deg,#1a73e8,#0d47a1)">🎓</div>
+          <div class="app-name">Classroom</div>
+          <div class="app-sub">Google edu</div>
+        </div>
+      </div>
+
+      <!-- CUSTOM APP SLOT -->
+      <div class="stitle" style="font-size:.82rem;margin:14px 0 10px"><span class="sti" style="width:24px;height:24px;font-size:.7rem">➕</span>Custom App</div>
+      <div class="card" style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+        <input class="clin" id="app-name-in" type="text" placeholder="App name..." style="width:140px;flex:none"/>
+        <input class="clin" id="app-url-in" type="text" placeholder="https://..." style="flex:1"/>
+        <button class="btn bp" onclick="addCustomApp()">➕ Add</button>
+      </div>
+      <div class="app-grid" id="custom-apps"></div>
     </div>
 
     <!-- PROXY -->
     <div class="panel" id="pxp">
       <div class="stitle"><span class="sti">🌐</span>Proxy Browser<span class="sttag">Anonymous</span></div>
+
+      <!-- LIVE PROXY ATTEMPT -->
       <div class="pxbar">
-        <input class="pxin" type="text" id="pxurl" placeholder="🔒  https://example.com"/>
+        <input class="pxin" type="text" id="pxurl" placeholder="🔒  Enter any URL — https://example.com"/>
         <button class="btn bp" onclick="launchPx()">▶ Go</button>
       </div>
-      <div class="pxg">
-        <div class="pxo" onclick="spx('Ultraviolet')"><div class="pxi">🔵</div><div class="pxn">ULTRAVIOLET</div><div class="pxs">● Backend Required</div></div>
-        <div class="pxo" onclick="spx('Rammerhead')"><div class="pxi">🔴</div><div class="pxn">RAMMERHEAD</div><div class="pxs">● Backend Required</div></div>
-        <div class="pxo" onclick="spx('Corrosion')"><div class="pxi">🟣</div><div class="pxn">CORROSION</div><div class="pxs">● Backend Required</div></div>
-        <div class="pxo" onclick="spx('Bare')"><div class="pxi">⚪</div><div class="pxn">BARE SERVER</div><div class="pxs">● Backend Required</div></div>
+
+      <!-- DEPLOY GUIDE -->
+      <div class="card" style="background:rgba(0,229,160,0.05);border-color:rgba(0,229,160,0.2)">
+        <div class="stitle" style="font-size:.85rem;margin-bottom:12px"><span class="sti" style="width:24px;height:24px;font-size:.7rem">🚀</span>Free Proxy Setup — 5 Minutes</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <div style="padding:12px;background:rgba(0,229,160,0.06);border-radius:10px;border:1px solid rgba(0,229,160,0.15)">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;color:#00e5a0;margin-bottom:6px">Option A — Render.com (Free)</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--tx2);line-height:1.9">
+              1. Go to <strong>render.com</strong><br/>
+              2. New → Web Service<br/>
+              3. Paste repo: <strong>titaniumnetwork-group/ultraviolet-app</strong><br/>
+              4. Deploy → get your URL<br/>
+              5. Paste URL in the field above
+            </div>
+            <button class="btn bp" style="margin-top:10px;width:100%;font-size:.7rem" onclick="launchApp('https://render.com','Render.com')">Open Render.com →</button>
+          </div>
+          <div style="padding:12px;background:rgba(82,178,255,0.06);border-radius:10px;border:1px solid rgba(82,178,255,0.15)">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;color:var(--a1);margin-bottom:6px">Option B — Railway (Free)</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--tx2);line-height:1.9">
+              1. Go to <strong>railway.app</strong><br/>
+              2. New Project → Deploy from GitHub<br/>
+              3. Use repo: <strong>titaniumnetwork-group/ultraviolet-app</strong><br/>
+              4. Get domain → paste above<br/>
+              5. Works instantly after deploy
+            </div>
+            <button class="btn bp" style="margin-top:10px;width:100%;font-size:.7rem" onclick="launchApp('https://railway.app','Railway.app')">Open Railway.app →</button>
+          </div>
+        </div>
       </div>
-      <div class="pxph card">
-        <div class="phi">🌐</div><h3>PROXY BROWSER</h3>
-        <p>Full proxy requires a Node.js backend running Ultraviolet or similar. Deploy a server, connect it here.</p>
-        <button class="btn bp" onclick="toast('Deploy a compatible backend proxy to enable this feature.','⚙️')">📦 Deployment Info</button>
+
+      <!-- BACKEND URL CONFIG -->
+      <div class="card">
+        <span class="thl">Connect Your Deployed Proxy Backend</span>
+        <div style="display:flex;gap:9px">
+          <input class="pxin" type="text" id="proxy-backend" placeholder="https://your-deploy.onrender.com" style="flex:1"/>
+          <button class="btn bp" onclick="saveProxyBackend()">💾 Save</button>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--tx3);margin-top:7px">
+          Once deployed, paste your backend URL above and the proxy will work automatically.
+        </div>
       </div>
+
+      <!-- iframe area -->
+      <div class="pxph card" id="proxy-frame-area" style="min-height:260px;flex:1">
+        <div class="phi">🌐</div>
+        <h3>PROXY READY</h3>
+        <p id="proxy-status-msg">Deploy a free backend on Render or Railway, save the URL above, then enter any site to browse anonymously.</p>
+      </div>
+      <iframe id="pxiframe" src="about:blank" style="display:none;width:100%;height:500px;border:none;border-radius:var(--r2)"></iframe>
     </div>
 
     <!-- THEME -->
@@ -921,7 +1116,7 @@ const GAMES=[
   // ── ACTION ──
   {name:'Flappy Bird',   cat:'action',icon:'🐦',url:'https://s3-eu-west-1.amazonaws.com/apps.playcanvas.com/TAhlQLDa/index.html',color:'#ff4f8b',stars:'★★★☆☆'},
   {name:'Run 3',         cat:'action',icon:'🏃',url:'https://script.google.com/macros/s/AKfycbzH19beOtthmgHOAyQwTzkPrGUquWfIq91ElX_xLebPeMZTByPCWbHpMX2ANYTjcTjs/exec',color:'#ff6b35',stars:'★★★★☆'},
-  {name:'Stickman Duel', cat:'action',icon:'☻', url:'http://script.google.com/macros/s/AKfycbwAoTmRTzE6ydvLBsbUcwDvlzS36xbr263_ttMmz8pBgmf0ih3RHJNeYFe3-evGMeMF/exec',color:'#ff2020',stars:'★★★★☆'},
+  {name:'Stickman Duel', cat:'action',icon:'☻', url:'https://n-6zrzh5oc474uxufjxoxmmfreely2skj3gwmb3rq-0lu-script.googleusercontent.com/userCodeAppPanel',color:'#ff2020',stars:'★★★★☆'},
   {name:'Slope',         cat:'action',icon:'🌀',url:'https://slope-unblocked-10x.github.io/action-games/slope/',color:'#00c8ff',stars:'★★★★★'},
   {name:'Tanuki Sunset',  cat:'action',icon:'🦝',url:'https://ijnfem.github.io/seraph/games/tanukisunset/index.html',color:'#ff9040',stars:'★★★★★'},
   {name:'Slope Rider',   cat:'action',icon:'🛹',url:'https://azgames.io/slope-rider.embed',color:'#00c8ff',stars:'★★★★★'},
@@ -980,27 +1175,44 @@ function launchGame(gm){
 }
 function closeGame(){document.getElementById('gol').classList.remove('on');document.getElementById('gif').src='about:blank';}
 
-/* AI */
-// ► Replace 'YOUR_API_KEY' with your Anthropic key, OR enter it in the UI.
-// ⚠️ Never commit real keys publicly!
-let USER_KEY='YOUR_API_KEY';
+/* AI — OpenRouter (FREE) */
+// ► Get free key at openrouter.ai — no credit card needed!
+let USER_KEY='YOUR_OPENROUTER_KEY';
+let currentModel='meta-llama/llama-3.1-8b-instruct:free';
 function setKey(v){apiKey=v.trim();USER_KEY=apiKey;}
+function setModel(m,el){
+  currentModel=m;
+  document.querySelectorAll('#m1,#m2,#m3,#m4').forEach(e=>e.classList.remove('on'));
+  if(el)el.classList.add('on');
+  toast('Model: '+m.split('/').pop().replace(':free',' (free)'),'🤖');
+}
 async function sendAI(){
   const inp=document.getElementById('aiinp'),msg=inp.value.trim();if(!msg)return;
-  const key=apiKey||USER_KEY;if(!key||key==='YOUR_API_KEY'){toast('Enter your API key!','🔑');return;}
+  const key=apiKey||USER_KEY;
+  if(!key||key==='YOUR_OPENROUTER_KEY'){toast('Get a free key at openrouter.ai then paste it in the AI tab!','🔑');return;}
   inp.value='';inp.style.height='auto';
   addMsg('u',msg);chatH.push({role:'user',content:msg});
   const t=addMsg('b','⟳ Thinking…');
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-opus-4-5',max_tokens:1024,
-        system:"You are Stars AI, Samuel's exclusive AI assistant in Stars OS. Be sharp, concise, and slightly futuristic.",
-        messages:chatH})});
-    const d=await r.json();if(d.error)throw new Error(d.error.message);
-    const rep=d.content?.[0]?.text||'No response.';chatH.push({role:'assistant',content:rep});
+    const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,
+        'HTTP-Referer':'https://stars-os.github.io','X-Title':'Stars OS'},
+      body:JSON.stringify({
+        model:currentModel,
+        messages:[
+          {role:'system',content:"You are Stars AI, Samuel's exclusive assistant in Stars OS. Be sharp, helpful, and slightly futuristic in tone."},
+          ...chatH
+        ]
+      })
+    });
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+    const rep=d.choices?.[0]?.message?.content||'No response.';
+    chatH.push({role:'assistant',content:rep});
     t.querySelector('.bbl').textContent=rep;
-  }catch(e){t.querySelector('.bbl').innerHTML=`<span style="color:var(--a3)">Error: ${e.message}</span>`;}
+  }catch(e){
+    t.querySelector('.bbl').innerHTML=`<span style="color:var(--a3)">Error: ${e.message}<br/><small>Make sure your OpenRouter key is correct.</small></span>`;
+  }
   const ch=document.getElementById('chat');ch.scrollTop=ch.scrollHeight;
 }
 function addMsg(role,text){
@@ -1010,9 +1222,54 @@ function addMsg(role,text){
   ch.appendChild(w);ch.scrollTop=ch.scrollHeight;return w;
 }
 
+/* APP LAUNCHER */
+function launchApp(url,name){
+  window.open(url,'_blank');
+  toast('Opening '+name+'…','📱');
+}
+const customApps=[];
+function addCustomApp(){
+  const n=document.getElementById('app-name-in').value.trim();
+  const u=document.getElementById('app-url-in').value.trim();
+  if(!n||!u){toast('Enter a name and URL','⚠️');return;}
+  const url=u.startsWith('http')?u:'https://'+u;
+  customApps.push({name:n,url});
+  renderCustomApps();
+  document.getElementById('app-name-in').value='';
+  document.getElementById('app-url-in').value='';
+  toast(n+' added!','📱');
+}
+function renderCustomApps(){
+  const g=document.getElementById('custom-apps');if(!g)return;g.innerHTML='';
+  customApps.forEach((a,i)=>{
+    const c=document.createElement('div');c.className='app-card';
+    c.innerHTML=`<div class="app-ico" style="background:linear-gradient(135deg,var(--a1),var(--a2))">🌐</div>
+      <div class="app-name">${a.name}</div><div class="app-sub">Custom</div>`;
+    c.onclick=()=>launchApp(a.url,a.name);g.appendChild(c);
+  });
+}
+
 /* PROXY */
-function launchPx(){toast('Proxy backend required — see deployment guide','🌐');}
-function spx(n){toast(n+' selected — deploy a backend to activate','🔧');}
+let proxyBackend='';
+function saveProxyBackend(){
+  const v=document.getElementById('proxy-backend').value.trim();
+  if(!v){toast('Enter your backend URL','⚠️');return;}
+  proxyBackend=v.replace(/\/$/,'');
+  toast('Backend saved: '+proxyBackend,'✅');
+  document.getElementById('proxy-status-msg').textContent='Backend connected! Enter a URL above and click Go.';
+}
+function launchPx(){
+  const url=document.getElementById('pxurl').value.trim();
+  if(!url){toast('Enter a URL','⚠️');return;}
+  if(!proxyBackend){toast('Set your proxy backend URL first (see setup guide below)','⚙️');return;}
+  const encoded=encodeURIComponent(url);
+  const iframe=document.getElementById('pxiframe');
+  const area=document.getElementById('proxy-frame-area');
+  iframe.src=proxyBackend+'/bare/'+encoded;
+  iframe.style.display='block';
+  area.style.display='none';
+  toast('Proxying: '+url,'🌐');
+}
 
 /* THEME */
 const PRESETS={
