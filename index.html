@@ -7,26 +7,27 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --void: #06080f;
-      --base: #0f1422;
-      --lift: #141929;
-      --card: #192135;
-      --edge: #1f2940;
-      --rim: #283452;
-      --star: #f0f4ff;
-      --dim: #6b7b9e;
-      --ghost: #3a4a6b;
-      --ice: #7dd3fc;
-      --ice-s: rgba(125, 211, 252, .08);
-      --ice-r: rgba(125, 211, 252, .18);
-      --sol: #fde68a;
-      --sol-s: rgba(253, 230, 138, .07);
-      --go: #4ade80;
-      --go-s: rgba(74, 222, 128, .08);
-      --coral: #f87171;
-      --violet: #a78bfa;
-      --r: 10px;
-      --bar: 48px;
+      --void: #080510;
+      --base: #0e0b1f;
+      --lift: #141029;
+      --card: #1a1535;
+      --edge: #251e42;
+      --rim: #352c5e;
+      --star: #f2eeff;
+      --dim: #7a6fa8;
+      --ghost: #3d3464;
+      --ice: #c084fc;
+      --ice-s: rgba(192,132,252,.08);
+      --ice-r: rgba(192,132,252,.2);
+      --sol: #fbbf24;
+      --sol-s: rgba(251,191,36,.08);
+      --go: #34d399;
+      --go-s: rgba(52,211,153,.08);
+      --coral: #fb7185;
+      --violet: #818cf8;
+      --amber: #f59e0b;
+      --r: 12px;
+      --bar: 52px;
     }
 
     *, *::before, *::after {
@@ -262,88 +263,90 @@
     #mbar {
       height: var(--bar);
       min-height: var(--bar);
-      background: rgba(10, 14, 23, 0.85);
-      backdrop-filter: blur(20px) saturate(1.6);
-      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      background: rgba(14,11,31,0.92);
+      backdrop-filter: blur(24px) saturate(1.8);
+      border-bottom: 1px solid rgba(192,132,252,.1);
       display: flex;
       align-items: center;
-      padding: 0 16px;
+      padding: 0 18px;
       gap: 10px;
       z-index: 100;
       flex-shrink: 0;
-      transform: translate3d(0, 0, 0);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      transform: translate3d(0,0,0);
+      box-shadow: 0 1px 0 rgba(192,132,252,.06), 0 8px 32px rgba(0,0,0,.4);
     }
 
     .ml {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
       font-weight: 800;
-      font-size: .92rem;
-      letter-spacing: -.02em;
-      margin-right: 8px;
+      font-size: .95rem;
+      letter-spacing: -.025em;
+      margin-right: 6px;
       flex-shrink: 0;
       color: var(--star);
-      text-shadow: 0 0 10px rgba(240, 244, 255, 0.15);
     }
 
     .ml-ic {
-      width: 24px;
-      height: 24px;
-      background: linear-gradient(135deg, var(--ice), var(--violet));
-      border-radius: 7px;
+      width: 26px;
+      height: 26px;
+      background: linear-gradient(135deg, #c084fc, #818cf8);
+      border-radius: 8px;
       display: grid;
       place-items: center;
-      font-size: .75rem;
-      box-shadow: 0 2px 10px rgba(125, 211, 252, 0.25);
+      font-size: .78rem;
+      box-shadow: 0 0 14px rgba(192,132,252,.45), 0 2px 8px rgba(0,0,0,.4);
     }
 
     .mtabs {
       display: flex;
-      gap: 3px;
+      gap: 2px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 10px;
+      padding: 3px;
     }
 
     .mtab {
-      padding: 6px 14px;
+      padding: 5px 16px;
       font-size: .8rem;
       font-weight: 600;
       color: var(--dim);
-      border-radius: 8px;
+      border-radius: 7px;
       letter-spacing: .01em;
-      transition: all .2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: all .2s cubic-bezier(.25,.8,.25,1);
     }
 
     .mtab:hover {
-      background: rgba(255, 255, 255, .06);
       color: var(--star);
+      background: rgba(255,255,255,.06);
     }
 
     .mtab.on {
       color: var(--ice);
-      background: var(--ice-s);
-      border: 1px solid rgba(125, 211, 252, 0.12);
-      box-shadow: 0 0 10px rgba(125, 211, 252, 0.05);
+      background: rgba(192,132,252,.15);
+      box-shadow: 0 0 12px rgba(192,132,252,.12);
     }
 
     .msearch {
       margin-left: auto;
       display: flex;
       align-items: center;
-      background: rgba(255, 255, 255, .03);
-      border: 1px solid rgba(255, 255, 255, .06);
-      border-radius: 8px;
-      padding: 5px 12px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 10px;
+      padding: 6px 13px;
       gap: 8px;
       width: 200px;
-      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: all .25s cubic-bezier(.25,.8,.25,1);
     }
 
     .msearch:focus-within {
-      border-color: rgba(125, 211, 252, 0.35);
-      background: rgba(255, 255, 255, .05);
+      border-color: rgba(192,132,252,.4);
+      background: rgba(192,132,252,.06);
       width: 240px;
-      box-shadow: 0 0 15px rgba(125, 211, 252, 0.12);
+      box-shadow: 0 0 18px rgba(192,132,252,.15);
     }
 
     .msearch input {
@@ -362,23 +365,23 @@
     .maibtn {
       display: flex;
       align-items: center;
-      gap: 6px;
-      background: linear-gradient(135deg, rgba(125, 211, 252, .1), rgba(167, 139, 250, .1));
-      border: 1px solid rgba(125, 211, 252, .18);
-      border-radius: 8px;
-      padding: 6px 14px;
-      font-size: .8rem;
+      gap: 7px;
+      background: linear-gradient(135deg,rgba(192,132,252,.15),rgba(129,140,248,.15));
+      border: 1px solid rgba(192,132,252,.25);
+      border-radius: 10px;
+      padding: 7px 16px;
+      font-size: .82rem;
       font-weight: 700;
-      color: var(--ice);
+      color: #c084fc;
       flex-shrink: 0;
-      transition: all .2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: all .2s cubic-bezier(.25,.8,.25,1);
     }
 
     .maibtn:hover {
-      background: linear-gradient(135deg, rgba(125, 211, 252, .18), rgba(167, 139, 250, .18));
-      border-color: rgba(125, 211, 252, 0.35);
+      background: linear-gradient(135deg,rgba(192,132,252,.25),rgba(129,140,248,.25));
+      border-color: rgba(192,132,252,.45);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(125, 211, 252, 0.15);
+      box-shadow: 0 6px 20px rgba(192,132,252,.2);
     }
 
     .aipulse {
@@ -431,16 +434,86 @@
 
     /* SIDEBAR */
     #lpanel {
-      width: 194px;
-      min-width: 194px;
-      background: rgba(8, 12, 20, 0.75);
-      backdrop-filter: blur(16px);
-      border-right: 1px solid rgba(255, 255, 255, .03);
+      width: 200px;
+      min-width: 200px;
+      background: rgba(8,5,16,0.7);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(192,132,252,.07);
       display: flex;
       flex-direction: column;
-      padding: 8px 0;
+      padding: 10px 0;
       overflow-y: auto;
-      transform: translate3d(0, 0, 0);
+      transform: translate3d(0,0,0);
+    }
+
+    .lsec {
+      padding: 12px 14px 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .55rem;
+      letter-spacing: .18em;
+      color: rgba(192,132,252,.4);
+      text-transform: uppercase;
+    }
+
+    .li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      font-size: .81rem;
+      font-weight: 600;
+      color: var(--dim);
+      width: 100%;
+      text-align: left;
+      transition: all .15s;
+      position: relative;
+      cursor: pointer;
+      border-radius: 0;
+    }
+
+    .li:hover {
+      background: rgba(192,132,252,.06);
+      color: var(--star);
+    }
+
+    .li.on {
+      background: rgba(192,132,252,.1);
+      color: #c084fc;
+    }
+
+    .li.on::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 15%;
+      bottom: 15%;
+      width: 3px;
+      background: linear-gradient(180deg, #c084fc, #818cf8);
+      border-radius: 0 3px 3px 0;
+      box-shadow: 0 0 8px rgba(192,132,252,.6);
+    }
+
+    .lic {
+      font-size: .98rem;
+      width: 20px;
+      text-align: center;
+    }
+
+    .lbadge {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .6rem;
+      background: rgba(255,255,255,.06);
+      color: var(--dim);
+      padding: 2px 7px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .li.on .lbadge {
+      background: rgba(192,132,252,.15);
+      color: #c084fc;
+      border-color: rgba(192,132,252,.2);
     }
 
     .lsec {
@@ -569,26 +642,26 @@
     /* GRID */
     .ggrid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-      gap: 9px;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 12px;
     }
 
     .gc {
       background: var(--card);
       border: 1px solid var(--edge);
-      border-radius: var(--r);
+      border-radius: 14px;
       overflow: hidden;
       cursor: pointer;
-      transition: transform .22s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                  box-shadow .22s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                  border-color .22s cubic-bezier(0.2, 0.8, 0.2, 1);
-      animation: cIn .28s ease both;
+      transition: transform .25s cubic-bezier(.2,.8,.2,1),
+                  box-shadow .25s cubic-bezier(.2,.8,.2,1),
+                  border-color .25s cubic-bezier(.2,.8,.2,1);
+      animation: cIn .3s ease both;
     }
 
     .gc:hover {
-      transform: translateY(-4px) scale(1.02);
-      border-color: rgba(125, 211, 252, 0.4);
-      box-shadow: 0 12px 30px rgba(125, 211, 252, .08), 0 4px 12px rgba(0, 0, 0, .4);
+      transform: translateY(-6px) scale(1.02);
+      border-color: rgba(192,132,252,.5);
+      box-shadow: 0 16px 40px rgba(192,132,252,.12), 0 6px 16px rgba(0,0,0,.5);
     }
 
     .gc:active {
@@ -611,7 +684,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
+      font-size: 2.2rem;
       position: relative;
       overflow: hidden;
     }
@@ -620,13 +693,13 @@
       content: '▶';
       position: absolute;
       inset: 0;
-      background: rgba(6, 8, 15, .7);
+      background: rgba(8,5,16,.75);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.6rem;
-      color: var(--ice);
-      text-shadow: 0 0 12px var(--ice);
+      font-size: 1.8rem;
+      color: #c084fc;
+      text-shadow: 0 0 20px rgba(192,132,252,.9);
       opacity: 0;
       transition: opacity .2s ease;
       backdrop-filter: blur(4px);
@@ -637,11 +710,11 @@
     }
 
     .gbody {
-      padding: 8px 10px 10px;
+      padding: 10px 12px 12px;
     }
 
     .gname {
-      font-size: .8rem;
+      font-size: .83rem;
       font-weight: 700;
       color: var(--star);
       white-space: nowrap;
@@ -651,37 +724,20 @@
     }
 
     .gcat {
-      font-size: .65rem;
+      font-size: .64rem;
       font-weight: 600;
-      color: var(--ghost);
-      margin-top: 2px;
-      letter-spacing: .04em;
+      color: rgba(192,132,252,.6);
+      margin-top: 3px;
+      letter-spacing: .06em;
       text-transform: uppercase;
     }
 
-    .ts {
-      background: linear-gradient(160deg, #071828, #0c2035);
-    }
-
-    .ta {
-      background: linear-gradient(160deg, #180a0a, #281010);
-    }
-
-    .tp {
-      background: linear-gradient(160deg, #091509, #0f2510);
-    }
-
-    .tm {
-      background: linear-gradient(160deg, #120918, #1c0f28);
-    }
-
-    .tv {
-      background: linear-gradient(160deg, #151208, #201a08);
-    }
-
-    .td {
-      background: linear-gradient(160deg, #0f1422, #141929);
-    }
+    .ts { background: linear-gradient(150deg, #0d0b22, #1a103a); }
+    .ta { background: linear-gradient(150deg, #1a0a10, #2d0f1a); }
+    .tp { background: linear-gradient(150deg, #060d14, #0a1a26); }
+    .tm { background: linear-gradient(150deg, #0f0820, #1c1035); }
+    .tv { background: linear-gradient(150deg, #140d05, #261808); }
+    .td { background: linear-gradient(150deg, #0e0b1f, #141029); }
 
     .empty {
       text-align: center;
@@ -1297,20 +1353,19 @@
     /* DOCK */
     #dock {
       position: fixed;
-      bottom: 12px;
+      bottom: 14px;
       left: 50%;
-      transform: translate3d(-50%, 0, 0);
+      transform: translate3d(-50%,0,0);
       z-index: 100;
-      background: rgba(10, 15, 26, 0.65);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, .07);
-      border-radius: 18px;
-      padding: 8px 14px;
+      background: rgba(14,11,31,0.6);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(192,132,252,.12);
+      border-radius: 22px;
+      padding: 9px 16px;
       display: flex;
       gap: 10px;
       align-items: center;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-      transition: all 0.3s ease;
+      box-shadow: 0 10px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(192,132,252,.05);
     }
 
     .dk {
@@ -1482,7 +1537,7 @@
       </svg>
     </div>
     <div class="b-name">Stars <span>OS</span></div>
-    <div class="b-ver">VERSION 1.0.1 &nbsp;·&nbsp; SAMUEL A CARINO</div>
+    <div class="b-ver">VERSION 1.0.2 &nbsp;·&nbsp; SAMUEL A CARINO</div>
     <div class="b-track"><div class="b-fill" id="bfill"></div></div>
     <div class="b-msg" id="bmsg">Starting up…</div>
     <div class="b-dots"><div class="b-dot"></div><div class="b-dot"></div><div class="b-dot"></div></div>
@@ -1614,7 +1669,7 @@
     <div class="abox">
       <div class="abox-logo">✦</div>
       <h2>Stars OS</h2>
-      <div class="asub">An unblocked games platform with built-in AI assistant.<br>Version 1.0.1 &middot; Optimized for Chromebook.</div>
+      <div class="asub">An unblocked games platform with built-in AI assistant.<br>Version 1.0.2 &middot; Optimized for Chromebook.</div>
       <div class="aby"><strong>Samuel A Carino</strong><br><span style="font-size:.65rem">Creator &amp; Developer &middot; All rights reserved &copy; 2025</span></div>
       <button class="aclose" onclick="document.getElementById('aboutm').classList.remove('open')">Close</button>
     </div>
@@ -1629,7 +1684,7 @@
     const HARDCODED_KEY = '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';          // paste key here: 'sk-or-v1-...'
     const SECRET_WORD   = 'the enchain'; // type this in AI chat for creator info
     const CREATOR       = 'Samuel A Carino';
-    const VERSION       = '1.0.1'; // auto-bumped by Antigravity on each update
+    const VERSION       = '1.0.2'; // auto-bumped by Antigravity on each update
 
     /* ── CSS STARFIELD ── optimized layered starfield */
     (function(){
@@ -1936,7 +1991,7 @@
           headers:{
             'Authorization':'Bearer '+apiKey,
             'Content-Type':'application/json',
-            'HTTP-Referer':window.location.href,
+            'HTTP-Referer':'https://stars-os.app',
             'X-Title':'Stars OS'
           },
           body:JSON.stringify({
