@@ -60,7 +60,8 @@
     }
 
     ::-webkit-scrollbar {
-      width: 5px;
+      width: 6px;
+      height: 6px;
     }
 
     ::-webkit-scrollbar-track {
@@ -68,11 +69,15 @@
     }
 
     ::-webkit-scrollbar-thumb {
-      background: var(--rim);
-      border-radius: 3px;
+      background: var(--edge);
+      border-radius: 10px;
     }
 
-    /* CSS STARFIELD — no canvas, no cross-tab lag */
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--rim);
+    }
+
+    /* CSS STARFIELD — optimized hardware layers */
     .stars {
       position: fixed;
       inset: 0;
@@ -81,22 +86,43 @@
       overflow: hidden;
     }
 
-    .stars span {
+    .stars-layer {
+      position: absolute;
+      inset: 0;
+      will-change: opacity;
+    }
+
+    .stars-layer.slow {
+      animation: pulseSlow 8s ease-in-out infinite;
+    }
+
+    .stars-layer.med {
+      animation: pulseMed 6s ease-in-out infinite;
+    }
+
+    .stars-layer.fast {
+      animation: pulseFast 4s ease-in-out infinite;
+    }
+
+    .stars-layer span {
       position: absolute;
       border-radius: 50%;
       background: #e8eeff;
-      animation: tw linear infinite;
     }
 
-    @keyframes tw {
-      0%, 100% {
-        opacity: .1;
-        transform: scale(1);
-      }
-      50% {
-        opacity: .85;
-        transform: scale(1.4);
-      }
+    @keyframes pulseSlow {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.7; }
+    }
+
+    @keyframes pulseMed {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.85; }
+    }
+
+    @keyframes pulseFast {
+      0%, 100% { opacity: 0.1; }
+      50% { opacity: 1; }
     }
 
     /* BOOT */
@@ -154,11 +180,13 @@
 
     .b-fill {
       height: 100%;
-      width: 0%;
+      width: 100%;
+      transform: scaleX(0);
+      transform-origin: left;
       background: linear-gradient(90deg, var(--ice), var(--violet));
       border-radius: 2px;
       box-shadow: 0 0 10px rgba(125, 211, 252, .45);
-      transition: width .3s ease;
+      transition: transform 12.5s cubic-bezier(0.1, 0.8, 0.25, 1);
     }
 
     .b-msg {
@@ -234,8 +262,8 @@
     #mbar {
       height: var(--bar);
       min-height: var(--bar);
-      background: rgba(8, 12, 20, .88);
-      backdrop-filter: blur(20px) saturate(1.5);
+      background: rgba(11, 16, 28, 0.94);
+      backdrop-filter: blur(12px) saturate(1.5);
       border-bottom: 1px solid rgba(255, 255, 255, .05);
       display: flex;
       align-items: center;
@@ -243,6 +271,7 @@
       gap: 8px;
       z-index: 100;
       flex-shrink: 0;
+      transform: translate3d(0, 0, 0);
     }
 
     .ml {
@@ -393,13 +422,14 @@
     #lpanel {
       width: 194px;
       min-width: 194px;
-      background: rgba(8, 12, 20, .6);
-      backdrop-filter: blur(12px);
+      background: rgba(8, 12, 20, 0.92);
+      backdrop-filter: blur(10px);
       border-right: 1px solid rgba(255, 255, 255, .04);
       display: flex;
       flex-direction: column;
       padding: 8px 0;
       overflow-y: auto;
+      transform: translate3d(0, 0, 0);
     }
 
     .lsec {
@@ -538,14 +568,16 @@
       border-radius: var(--r);
       overflow: hidden;
       cursor: pointer;
-      transition: transform .17s, box-shadow .17s, border-color .17s;
+      transition: transform .22s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                  box-shadow .22s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                  border-color .22s cubic-bezier(0.2, 0.8, 0.2, 1);
       animation: cIn .28s ease both;
     }
 
     .gc:hover {
-      transform: translateY(-3px) scale(1.015);
-      border-color: var(--rim);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, .5);
+      transform: translateY(-4px) scale(1.02);
+      border-color: rgba(125, 211, 252, 0.4);
+      box-shadow: 0 12px 30px rgba(125, 211, 252, .08), 0 4px 12px rgba(0, 0, 0, .4);
     }
 
     .gc:active {
@@ -574,19 +606,19 @@
     }
 
     .gthumb::after {
-      content: 'PLAY';
+      content: '▶';
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, .62);
+      background: rgba(6, 8, 15, .7);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .18em;
-      color: var(--star);
+      font-size: 1.6rem;
+      color: var(--ice);
+      text-shadow: 0 0 12px var(--ice);
       opacity: 0;
-      transition: opacity .14s;
+      transition: opacity .2s ease;
+      backdrop-filter: blur(4px);
     }
 
     .gc:hover .gthumb::after {
@@ -763,13 +795,14 @@
       right: -375px;
       bottom: 0;
       width: 358px;
-      background: rgba(7, 11, 20, .97);
-      backdrop-filter: blur(20px);
+      background: rgba(7, 11, 20, 0.96);
+      backdrop-filter: blur(10px);
       border-left: 1px solid var(--edge);
       z-index: 700;
       display: flex;
       flex-direction: column;
       transition: right .26s cubic-bezier(.25, .8, .25, 1);
+      transform: translate3d(0, 0, 0);
     }
 
     #aid.open {
@@ -1255,10 +1288,10 @@
       position: fixed;
       bottom: 10px;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate3d(-50%, 0, 0);
       z-index: 100;
-      background: rgba(8, 12, 20, .84);
-      backdrop-filter: blur(20px);
+      background: rgba(8, 12, 20, 0.92);
+      backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, .06);
       border-radius: 16px;
       padding: 8px 12px;
@@ -1398,8 +1431,12 @@
 </head>
 <body>
 
-  <!-- CSS STARFIELD — purely CSS, no requestAnimationFrame, zero cross-tab lag -->
-  <div class="stars" id="stars"></div>
+  <!-- CSS STARFIELD — optimized hardware layers -->
+  <div class="stars" id="stars">
+    <div class="stars-layer slow" id="stars-slow"></div>
+    <div class="stars-layer med" id="stars-med"></div>
+    <div class="stars-layer fast" id="stars-fast"></div>
+  </div>
 
   <!-- BOOT SCREEN -->
   <div id="boot">
@@ -1518,32 +1555,24 @@
   <div id="aid">
     <div class="aihead">
       <div class="aihead-ic">✦</div>
-      <div class="aihead-info"><strong>Stars AI</strong><span>Powered by OpenRouter</span></div>
+      <div class="aihead-info"><strong>Stars AI</strong><span>Your Assistant</span></div>
       <div class="aix" id="aiClose">✕</div>
-    </div>
-    <div class="aikey">
-      <div class="aiklbl">OpenRouter API Key</div>
-      <div class="aikrow">
-        <input type="password" class="aikin" id="apikey" placeholder="sk-or-v1-…">
-        <button class="aiksave" onclick="saveKey()">Save</button>
-      </div>
-      <div class="aiks" id="ks"></div>
     </div>
     <div class="aimod">
       <label>Model</label>
       <select id="modsel">
+        <option value="openai/gpt-4o-mini" selected>GPT-4o Mini (Paid)</option>
+        <option value="anthropic/claude-3-haiku">Claude 3 Haiku (Paid)</option>
         <option value="mistralai/mistral-7b-instruct:free">Mistral 7B (Free)</option>
         <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B (Free)</option>
         <option value="google/gemma-2-9b-it:free">Gemma 2 9B (Free)</option>
         <option value="qwen/qwen-2-7b-instruct:free">Qwen 2 7B (Free)</option>
-        <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
-        <option value="anthropic/claude-3-haiku">Claude 3 Haiku</option>
       </select>
     </div>
     <div id="aimsgs">
       <div class="msg ai">
         <div class="msg-who">Stars AI</div>
-        <div class="msg-bub">Hey! I am Stars AI, your built-in assistant. Ask me about game tips, homework, coding, or anything. Paste your OpenRouter key above — free models work great!</div>
+        <div class="msg-bub">Hey! I am Stars AI, your built-in assistant. Ask me about game tips, homework, coding, or anything.</div>
       </div>
     </div>
     <div class="aifooter">
@@ -1570,18 +1599,33 @@
        ╚══════════════════════════════════════════════════╝ */
 
     const HARDCODED_KEY = '';          // paste key here: 'sk-or-v1-...'
-    const SECRET_WORD   = 'starsadmin'; // type this in AI chat for creator info
+    const SECRET_WORD   = 'the enchain'; // type this in AI chat for creator info
     const CREATOR       = 'Samuel A Carino';
 
-    /* ── CSS STARFIELD ── zero JS animation, no tab lag */
+    /* ── CSS STARFIELD ── optimized layered starfield */
     (function(){
-      const layer = document.getElementById('stars');
-      for(let i=0; i<110; i++){
-        const s = document.createElement('span');
-        const sz = (Math.random()*1.8+0.3).toFixed(1);
-        s.style.cssText=`width:${sz}px;height:${sz}px;left:${(Math.random()*100).toFixed(2)}%;top:${(Math.random()*100).toFixed(2)}%;animation-duration:${(Math.random()*6+3).toFixed(1)}s;animation-delay:${(Math.random()*7).toFixed(1)}s;opacity:${(Math.random()*.4+.1).toFixed(2)}`;
-        layer.appendChild(s);
+      const slow = document.getElementById('stars-slow');
+      const med = document.getElementById('stars-med');
+      const fast = document.getElementById('stars-fast');
+      
+      function addStars(container, count, minSize, maxSize) {
+        for(let i = 0; i < count; i++){
+          const s = document.createElement('span');
+          const sz = (Math.random() * (maxSize - minSize) + minSize).toFixed(1);
+          s.style.cssText = `
+            width: ${sz}px;
+            height: ${sz}px;
+            left: ${(Math.random() * 100).toFixed(2)}%;
+            top: ${(Math.random() * 100).toFixed(2)}%;
+            opacity: ${(Math.random() * 0.5 + 0.3).toFixed(2)};
+          `;
+          container.appendChild(s);
+        }
       }
+      
+      addStars(slow, 18, 0.4, 1.0);
+      addStars(med, 14, 0.8, 1.5);
+      addStars(fast, 8, 1.2, 2.0);
     })();
 
     /* ── CLOCK ── */
@@ -1612,25 +1656,32 @@
       const msg=document.getElementById('bmsg');
       const boot=document.getElementById('boot');
       const desk=document.getElementById('desk');
-      const TOTAL=13000;
-      const steps=BMSGS.length;
-      let start=null;
-      function frame(ts){
-        if(!start) start=ts;
-        const pct=Math.min((ts-start)/TOTAL,1);
-        fill.style.width=(pct*100)+'%';
-        msg.textContent=BMSGS[Math.min(Math.floor(pct*steps),steps-1)];
-        if(pct<1){
-          requestAnimationFrame(frame);
-        } else {
-          setTimeout(()=>{
-            boot.classList.add('hide');
-            desk.classList.add('vis');
-            setTimeout(()=>boot.style.display='none',750);
-          },350);
+      
+      // Start hardware accelerated scale transition
+      requestAnimationFrame(() => {
+        fill.style.transform = 'scaleX(1)';
+      });
+      
+      // Update text status message every 1.05s to match loading timeline without layout thrashing
+      let step = 0;
+      msg.textContent = BMSGS[0];
+      const textInterval = setInterval(() => {
+        step++;
+        if(step < BMSGS.length) {
+          msg.textContent = BMSGS[step];
         }
-      }
-      requestAnimationFrame(frame);
+      }, 1050);
+
+      // On completion
+      setTimeout(() => {
+        clearInterval(textInterval);
+        msg.textContent = BMSGS[BMSGS.length - 1];
+        setTimeout(() => {
+          boot.classList.add('hide');
+          desk.classList.add('vis');
+          setTimeout(() => boot.style.display = 'none', 750);
+        }, 350);
+      }, 12500);
     })();
 
     /* ── GAMES ── */
@@ -1778,33 +1829,7 @@
     document.getElementById('aiToggle').addEventListener('click',()=>aiDrawer.classList.toggle('open'));
     document.getElementById('aiClose').addEventListener('click',()=>aiDrawer.classList.remove('open'));
 
-    let apiKey = HARDCODED_KEY || localStorage.getItem('stars_key')||'';
-    if(apiKey){
-      document.getElementById('apikey').value=apiKey;
-      setKS('ok', HARDCODED_KEY?'Key loaded from code':'Key loaded');
-    }
-
-    function saveKey(){
-      const v=document.getElementById('apikey').value.trim();
-      if(!v){
-        setKS('err','Enter a valid key');
-        return;
-      }
-      apiKey=v;
-      localStorage.setItem('stars_key',v);
-      setKS('ok','Saved!');
-    }
-    function setKS(type,msg){
-      const el=document.getElementById('ks');
-      el.className='aiks '+type;
-      el.textContent=msg;
-      if(type==='ok') {
-        setTimeout(()=>{
-          el.style.display='none';
-          el.className='aiks';
-        },2800);
-      }
-    }
+    let apiKey = HARDCODED_KEY;
 
     const msgsEl=document.getElementById('aimsgs');
     const aiInput=document.getElementById('aiinput');
@@ -1856,7 +1881,7 @@
       }
 
       if(!apiKey){
-        setKS('err','Add your API key first');
+        addMsg('ai', 'Error: API key is not configured. Please set HARDCODED_KEY in the script/code to use the assistant.', 'err');
         return;
       }
       aiInput.value='';
